@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Why it is built this way
+    url: https://github.com/PrincessSiren/achaea-restock/tree/main/docs
+    about: The reasoning behind each decision -- why there is no trigger, what the tables are read off, and what it deliberately will not guess.

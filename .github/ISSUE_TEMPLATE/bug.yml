@@ -1,0 +1,67 @@
+name: Something is wrong
+description: A shortfall that is wrong, an item filed under the wrong heading, or anything else misbehaving.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The two most useful things you can put in this report are the output of
+        **`restock diag`** and a **`RIFT` listing** from the same session.
+        Almost every question about this package is answered by one of them,
+        because the package knows only what GMCP sent it and `RIFT` is what the
+        game says is actually there.
+
+  - type: textarea
+    id: diag
+    attributes:
+      label: "`restock diag`"
+      description: >-
+        Paste the whole thing. The build stamp is the only reliable answer to
+        "is Mudlet running what I think it is" -- the version says what you
+        expect whether or not anything was rebuilt. It also lists any item held
+        that has no heading, which is the commonest cause of a surprising
+        report.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: rift
+    attributes:
+      label: "`RIFT`"
+      description: >-
+        The game's own listing, pasted exactly. This is the only thing that can
+        settle a disagreement about what you are holding or which heading
+        something sits under -- GMCP sends amounts and no headings at all.
+      render: text
+    validations:
+      required: false
+
+  - type: dropdown
+    id: expected
+    attributes:
+      label: What should have happened?
+      options:
+        - It said something was short and it is not
+        - It missed something that is short
+        - An item was filed under the wrong heading, or under Unsorted
+        - The amounts do not match what RIFT says
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened instead
+      description: What you typed, and what came back.
+    validations:
+      required: true
+
+  - type: input
+    id: mudlet
+    attributes:
+      label: Mudlet version
+      placeholder: "5.0.1"
+    validations:
+      required: true
