@@ -10,6 +10,9 @@
 -- is assumed.
 --
 --   luajit test_harness.lua
+--
+-- Resolves its own directory, so it runs from anywhere rather than only
+-- from the repository root.
 
 local passed, failed = 0, 0
 
@@ -76,7 +79,9 @@ end
 
 -- ---------------------------------------------------------------------------
 
-dofile("AchaeaRestock.lua")
+local HERE = (arg and arg[0] and arg[0]:match("^(.*)[/\\]")) or "."
+
+dofile(HERE .. "/AchaeaRestock.lua")
 local M = restock
 
 -- ---------------------------------------------------------------------------
@@ -430,7 +435,7 @@ do
     -- table, so the in-game help cannot drift from what is installed. Loaded
     -- from source COMMANDS is empty, which is what M.help() says -- so the
     -- check is against the committed XML instead.
-    local xml = io.open("AchaeaRestock.xml", "r")
+    local xml = io.open(HERE .. "/AchaeaRestock.xml", "r")
     ok(xml, "the committed XML is there")
     if xml then
         local text = xml:read("*a")
