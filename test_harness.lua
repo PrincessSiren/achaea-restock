@@ -170,7 +170,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    eq(#M.state.handlers, 2, "two handlers registered")
+    eq(#M.state.handlers, 3, "three handlers registered: List, Change and the uninstall")
 
     -- Numbers as numbers.
     gmcp.IRE.Rift.List = {
@@ -424,6 +424,56 @@ do
     gmcp.IRE.Rift.List = nil
     M.start()
     eq(sent[1], "IRE.Rift.Request", "an empty rift is asked for at start")
+end
+
+-- ---------------------------------------------------------------------------
+-- removing the package stops it
+-- ---------------------------------------------------------------------------
+
+do
+    -- Mudlet takes the aliases and the script and leaves the event handlers,
+    -- so the package has to stop itself. The event is raised for every
+    -- package, with the name as its argument.
+    local function uninstall(name)
+        local n = 0
+        for _, h in pairs(handlers) do
+            if h.event == "sysUninstallPackage" then
+                n = n + 1
+                h.fn("sysUninstallPackage", name)
+            end
+        end
+        return n
+    end
+    eq(uninstall("SomebodyElse"), 1, "one uninstall handler, not one per load")
+    eq(#M.state.handlers, 3, "another package being removed changes nothing")
+    local build = io.open(HERE .. "/build.py", "r")
+    local src = build:read("*a")
+    build:close()
+    eq(src:match('PACKAGE_NAME = "([^"]+)"'), M.PACKAGE,
+        "the name checked is the one the package is built under")
+    uninstall(M.PACKAGE)
+    eq(#M.state.handlers, 0, "removing this package drops every handler")
+    eq(next(handlers), nil, "...and none is left registered")
+    M.start()
+    eq(#M.state.handlers, 3, "an install after it starts it again")
+end
+
+-- ---------------------------------------------------------------------------
+-- a save that fails says so
+-- ---------------------------------------------------------------------------
+
+do
+    -- Mudlet's table.save does not raise on a file it cannot open: it returns
+    -- nil and a message, and returns nothing at all when it worked.
+    local realSave, realFile = table.save, M.file
+    M.file = "/harness/achaea-restock.lua"
+    table.save = function() return nil, "Permission denied" end
+    clearEcho()
+    eq(M.save(), false, "a file that cannot be written is reported")
+    ok(echoedText():find("could not save", 1, true), "...out loud")
+    table.save = function() end
+    eq(M.save(), true, "a save that works still says so")
+    table.save, M.file = realSave, realFile
 end
 
 -- ---------------------------------------------------------------------------

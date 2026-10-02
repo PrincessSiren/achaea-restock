@@ -53,7 +53,7 @@
 restock = restock or {}
 local M = restock
 
-M.VERSION = "0.1.0"
+M.VERSION = "0.1.1"
 
 -- Both filled in by build.py, which appends them to the shipped copy of
 -- this file. Loaded from source they stay empty and "source", which is
@@ -303,9 +303,12 @@ function M.save()
         end
         S.loaded = "fresh"
     end
-    local ok = pcall(table.save, M.file,
+    -- table.save reports a file it could not open by returning nil and a
+    -- message, not by raising, and returns nothing when it worked. So the
+    -- message is the sign of a failure and pcall's own result is not.
+    local ok, _, failed = pcall(table.save, M.file,
         { targets = M.targets, config = M.config })
-    if not ok then
+    if not ok or failed ~= nil then
         warn("could not save your targets")
         return false
     end
@@ -740,6 +743,7 @@ function M.start()
         S.handlers = {
             registerAnonymousEventHandler("gmcp.IRE.Rift.List", M.onList),
             registerAnonymousEventHandler("gmcp.IRE.Rift.Change", M.onChange),
+            registerAnonymousEventHandler("sysUninstallPackage", M.onUninstall),
         }
     end
     -- A List may well have landed before this script was recompiled, and
@@ -753,6 +757,23 @@ end
 
 function M.stop()
     teardown()
+    return true
+end
+
+-- The name Mudlet knows the package by, which is what its uninstall event
+-- carries. build.py has the same string; the harness holds the two together.
+M.PACKAGE = "AchaeaRestock"
+
+--- Removing the package takes its aliases and its script away and leaves
+--- everything created at runtime behind, still running with no command left
+--- to stop it. Mudlet raises this before it removes anything, and for every
+--- package, so the name is checked. An upgrade is an uninstall and an
+--- install: the new copy's script starts it again.
+function M.onUninstall(_, name)
+    if name ~= M.PACKAGE then
+        return false
+    end
+    M.stop()
     return true
 end
 
