@@ -170,7 +170,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    eq(#M.state.handlers, 2, "two handlers registered")
+    eq(#M.state.handlers, 3, "three handlers registered: List, Change and the uninstall")
 
     -- Numbers as numbers.
     gmcp.IRE.Rift.List = {
@@ -424,6 +424,95 @@ do
     gmcp.IRE.Rift.List = nil
     M.start()
     eq(sent[1], "IRE.Rift.Request", "an empty rift is asked for at start")
+end
+
+-- ---------------------------------------------------------------------------
+-- removing the package stops it
+-- ---------------------------------------------------------------------------
+
+do
+    -- Mudlet takes the aliases and the script and leaves the event handlers,
+    -- so the package has to stop itself. The event is raised for every
+    -- package, with the name as its argument.
+    local function uninstall(name)
+        local n = 0
+        for _, h in pairs(handlers) do
+            if h.event == "sysUninstall" then
+                n = n + 1
+                h.fn("sysUninstall", name)
+            end
+        end
+        return n
+    end
+    eq(uninstall("SomebodyElse"), 1, "one uninstall handler, not one per load")
+    eq(#M.state.handlers, 3, "another package being removed changes nothing")
+    local build = io.open(HERE .. "/build.py", "r")
+    local src = build:read("*a")
+    build:close()
+    eq(src:match('PACKAGE_NAME = "([^"]+)"'), M.PACKAGE,
+        "the name checked is the one the package is built under")
+    uninstall(M.PACKAGE)
+    eq(#M.state.handlers, 0, "removing this package drops every handler")
+    eq(next(handlers), nil, "...and none is left registered")
+    M.start()
+    eq(#M.state.handlers, 3, "an install after it starts it again")
+end
+
+-- ---------------------------------------------------------------------------
+-- a save that fails says so
+-- ---------------------------------------------------------------------------
+
+do
+    -- Mudlet's table.save does not raise on a file it cannot open: it returns
+    -- nil and a message, and returns nothing at all when it worked.
+    local realSave, realFile = table.save, M.file
+    M.file = "/harness/achaea-restock.lua"
+    table.save = function() return nil, "Permission denied" end
+    clearEcho()
+    eq(M.save(), false, "a file that cannot be written is reported")
+    ok(echoedText():find("could not save", 1, true), "...out loud")
+    ok(echoedText():find("Permission denied", 1, true), "...with the reason")
+    ok(echoedText():find("gone when Mudlet restarts", 1, true), "...and what it means")
+    table.save = function() end
+    eq(M.save(), true, "a save that works still says so")
+    table.save, M.file = realSave, realFile
+end
+
+-- ---------------------------------------------------------------------------
+-- a file that cannot be moved aside is not written over
+-- ---------------------------------------------------------------------------
+
+do
+    -- os.rename returns nil when it fails; it does not raise. Carrying on to
+    -- the write would put empty targets over the only copy of them.
+    local realSave, realRename, realFile = table.save, os.rename, M.file
+    local realLoaded = M.state.loaded
+    local wrote = 0
+    M.file = "/harness/achaea-restock.lua"
+    M.state.loaded = "unreadable"
+    table.save = function() wrote = wrote + 1 end
+    os.rename = function() return nil, "Permission denied" end
+    clearEcho()
+    eq(M.save(), false, "a save that could not move the file aside reports it")
+    ok(echoedText():find("could not move", 1, true), "...out loud")
+    ok(echoedText():find("Permission denied", 1, true), "...with the reason")
+    ok(echoedText():find("by hand", 1, true), "...and how to get out of it")
+    eq(wrote, 0, "...and writes nothing")
+    eq(M.state.loaded, "unreadable", "...so the next save tries the move again")
+    clearEcho()
+    M.diag()
+    ok(echoedText():find("NOT being saved", 1, true)
+        and echoedText():find("Permission denied", 1, true),
+        "diag says so, with the reason, after the warning has scrolled away")
+    os.rename = function() return true end
+    eq(M.save(), true, "a move that works is followed by the save")
+    eq(wrote, 1, "...exactly once")
+    clearEcho()
+    M.diag()
+    ok(not echoedText():find("NOT being saved", 1, true),
+        "...and diag stops saying it is blocked")
+    table.save, os.rename, M.file = realSave, realRename, realFile
+    M.state.loaded = realLoaded
 end
 
 -- ---------------------------------------------------------------------------
