@@ -471,6 +471,8 @@ do
     clearEcho()
     eq(M.save(), false, "a file that cannot be written is reported")
     ok(echoedText():find("could not save", 1, true), "...out loud")
+    ok(echoedText():find("Permission denied", 1, true), "...with the reason")
+    ok(echoedText():find("gone when Mudlet restarts", 1, true), "...and what it means")
     table.save = function() end
     eq(M.save(), true, "a save that works still says so")
     table.save, M.file = realSave, realFile
@@ -493,6 +495,8 @@ do
     clearEcho()
     eq(M.save(), false, "a save that could not move the file aside reports it")
     ok(echoedText():find("could not move", 1, true), "...out loud")
+    ok(echoedText():find("Permission denied", 1, true), "...with the reason")
+    ok(echoedText():find("by hand", 1, true), "...and how to get out of it")
     eq(wrote, 0, "...and writes nothing")
     eq(M.state.loaded, "unreadable", "...so the next save tries the move again")
     os.rename = function() return true end
