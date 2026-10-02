@@ -298,9 +298,15 @@ function M.save()
     -- were typed in by hand and this is the only copy of them.
     if S.loaded == "unreadable" then
         local kept = M.file .. ".bad"
-        if pcall(os.rename, M.file, kept) then
-            warn("kept the unreadable file as " .. kept)
+        -- os.rename reports failure by returning nil, not by raising. If the
+        -- file could not be moved aside, writing now would destroy the only
+        -- copy, so nothing is written and the next save tries again.
+        local ok, moved = pcall(os.rename, M.file, kept)
+        if not (ok and moved) then
+            warn("could not move the unreadable file aside; nothing was saved over it")
+            return false
         end
+        warn("kept the unreadable file as " .. kept)
         S.loaded = "fresh"
     end
     -- table.save reports a file it could not open by returning nil and a

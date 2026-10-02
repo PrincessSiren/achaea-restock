@@ -477,6 +477,32 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- a file that cannot be moved aside is not written over
+-- ---------------------------------------------------------------------------
+
+do
+    -- os.rename returns nil when it fails; it does not raise. Carrying on to
+    -- the write would put empty targets over the only copy of them.
+    local realSave, realRename, realFile = table.save, os.rename, M.file
+    local realLoaded = M.state.loaded
+    local wrote = 0
+    M.file = "/harness/achaea-restock.lua"
+    M.state.loaded = "unreadable"
+    table.save = function() wrote = wrote + 1 end
+    os.rename = function() return nil, "Permission denied" end
+    clearEcho()
+    eq(M.save(), false, "a save that could not move the file aside reports it")
+    ok(echoedText():find("could not move", 1, true), "...out loud")
+    eq(wrote, 0, "...and writes nothing")
+    eq(M.state.loaded, "unreadable", "...so the next save tries the move again")
+    os.rename = function() return true end
+    eq(M.save(), true, "a move that works is followed by the save")
+    eq(wrote, 1, "...exactly once")
+    table.save, os.rename, M.file = realSave, realRename, realFile
+    M.state.loaded = realLoaded
+end
+
+-- ---------------------------------------------------------------------------
 -- the generated package matches the source
 -- ---------------------------------------------------------------------------
 
