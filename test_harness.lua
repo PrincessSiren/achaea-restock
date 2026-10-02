@@ -499,9 +499,18 @@ do
     ok(echoedText():find("by hand", 1, true), "...and how to get out of it")
     eq(wrote, 0, "...and writes nothing")
     eq(M.state.loaded, "unreadable", "...so the next save tries the move again")
+    clearEcho()
+    M.diag()
+    ok(echoedText():find("NOT being saved", 1, true)
+        and echoedText():find("Permission denied", 1, true),
+        "diag says so, with the reason, after the warning has scrolled away")
     os.rename = function() return true end
     eq(M.save(), true, "a move that works is followed by the save")
     eq(wrote, 1, "...exactly once")
+    clearEcho()
+    M.diag()
+    ok(not echoedText():find("NOT being saved", 1, true),
+        "...and diag stops saying it is blocked")
     table.save, os.rename, M.file = realSave, realRename, realFile
     M.state.loaded = realLoaded
 end

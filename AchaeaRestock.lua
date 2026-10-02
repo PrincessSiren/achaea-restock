@@ -348,8 +348,8 @@ function M.load()
     if not pcall(table.load, M.file, stored) or type(stored) ~= "table" then
         S.loaded, S.loadedCount = "unreadable", 0
         warn("could not read " .. M.file .. " -- your targets are NOT loaded. "
-            .. "The file will be kept as " .. M.file
-            .. ".bad rather than overwritten.")
+            .. "The file is not overwritten: it is moved to " .. M.file
+            .. ".bad before the next save, and nothing is written if that fails.")
         return false
     end
     if type(stored.targets) == "table" then
@@ -723,6 +723,11 @@ function M.diag()
     plain("  saved to:    " .. tostring(M.file))
     plain("  file at load: " .. S.loaded
         .. " (" .. S.loadedCount .. " targets)")
+    -- The warning that said so has scrolled away by the time anyone asks.
+    if S.moveFailed then
+        plain("  <ansi_light_red>NOT being saved<reset>: the unreadable file "
+            .. "could not be moved aside (" .. S.moveFailed .. ")")
+    end
     plain("  Minerals cap: "
         .. (M.CAP.Minerals and tostring(M.CAP.Minerals)
             or "<ansi_light_magenta>unstated by HELP 7.14<reset>"))
