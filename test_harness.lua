@@ -437,9 +437,9 @@ do
     local function uninstall(name)
         local n = 0
         for _, h in pairs(handlers) do
-            if h.event == "sysUninstallPackage" then
+            if h.event == "sysUninstall" then
                 n = n + 1
-                h.fn("sysUninstallPackage", name)
+                h.fn("sysUninstall", name)
             end
         end
         return n
