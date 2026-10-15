@@ -16,7 +16,7 @@ over GMCP -- Mudlet asks for IRE.Rift in its own opening handshake -- so this
 package never reads a line of game output. The only thing it sends is
 IRE.Rift.Request.
 
-Note that the heading alias enumerates the nine headings rather than taking
+Note that the heading alias enumerates the ten headings rather than taking
 `^restock\s+(\S+)$`. Mudlet fires every alias that matches rather than the
 first (AliasUnit::processDataStream loops the whole root list), so a catch-all
 would fire *alongside* `restock diag` rather than being shadowed by it.

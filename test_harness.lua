@@ -907,6 +907,86 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- settings round-trip, and a hand-edited file is cleaned
+-- ---------------------------------------------------------------------------
+
+do
+    local realSave, realLoad, realExists, realFile = table.save, table.load,
+        io.exists, M.file
+    local disk
+    -- Mudlet's table.save serialises, so the stub copies: storing the live
+    -- table would make every later change look as if it had been saved.
+    local function copy(v)
+        if type(v) ~= "table" then return v end
+        local out = {}
+        for k, x in pairs(v) do out[k] = copy(x) end
+        return out
+    end
+    table.save = function(_, t) disk = copy(t) end
+    table.load = function(_, into)
+        for k, v in pairs(disk) do into[k] = v end
+    end
+    io.exists = function() return disk ~= nil end
+    M.file = "/harness/achaea-restock.lua"
+
+    M.targets = { ash = 500, Herbs = 300 }
+    M.config.cureLow, M.config.cureBuy, M.config.slack = 450, "herbs", 20
+    eq(M.save(), true, "settings save")
+    M.targets = {}
+    M.config.cureLow, M.config.cureBuy, M.config.slack = 0, "either", 0
+    eq(M.load(), true, "and load")
+    eq(M.config.cureLow, 450, "cureLow comes back")
+    eq(M.config.cureBuy, "herbs", "cureBuy comes back")
+    eq(M.config.slack, 20, "slack comes back")
+    eq(M.targets.ash, 500, "an item target comes back")
+    eq(M.targets.Herbs, 300, "a heading target comes back")
+
+    -- The right type and a value no command could set.
+    disk = { targets = {}, config = { cureBuy = "rocks", cureLow = -5 } }
+    M.load()
+    eq(M.config.cureBuy, "either", "an unknown cureBuy falls back to either")
+    eq(M.config.cureLow, 0, "a negative cureLow falls back to off")
+    disk = { targets = {}, config = { cureLow = math.huge } }
+    M.load()
+    eq(M.config.cureLow, 0, "an infinite cureLow falls back to off")
+    disk = { targets = {}, config = { cureLow = "500" } }
+    M.config.cureLow = 0
+    M.load()
+    eq(M.config.cureLow, 0, "a cureLow of the wrong type is ignored")
+
+    table.save, table.load, io.exists, M.file = realSave, realLoad,
+        realExists, realFile
+    M.targets = {}
+    M.config.cureLow, M.config.cureBuy, M.config.slack = 0, "either", 0
+end
+
+-- ---------------------------------------------------------------------------
+-- a typo is named when the target is set
+-- ---------------------------------------------------------------------------
+
+do
+    local realSave = M.save
+    M.save = function() return true end
+    gmcp.IRE.Rift.List = { { name = "ash", amount = 318 } }
+    raise("gmcp.IRE.Rift.List")
+    M.targets = {}
+    clearEcho()
+    ok(M.setTarget("ashh", "500"), "a misspelt item target is still kept")
+    ok(echoedText():find("restock forget ashh", 1, true),
+        "...with a warning naming how to undo it")
+    clearEcho()
+    M.setTarget("kelp", "300")
+    ok(not echoedText():find("no RIFT listing", 1, true),
+        "a listed name at zero is not called a typo")
+    clearEcho()
+    M.setTarget("herbs", "500")
+    ok(not echoedText():find("no RIFT listing", 1, true),
+        "nor is a heading")
+    M.targets = {}
+    M.save = realSave
+end
+
+-- ---------------------------------------------------------------------------
 -- a save that fails says so
 -- ---------------------------------------------------------------------------
 

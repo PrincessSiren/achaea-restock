@@ -28,7 +28,7 @@
 -- GMCP carries the amounts and not the categories. Mudlet asks for IRE.Rift in
 -- its own opening handshake (Core.Supports.Set, src/ctelnet.cpp), so no
 -- Core.Supports.Add is needed the way IRE.Target needs one -- but a frame is
--- { name, amount } per item and nothing else. Which of the nine headings a
+-- { name, amount } per item and nothing else. Which of the ten headings a
 -- name sits under is in the *listing* and only there, which is why M.CATEGORY
 -- exists at all and why it is transcribed from a capture rather than recalled.
 -- Type RIFT in game to print that listing again.
@@ -512,6 +512,17 @@ function M.load()
             end
         end
     end
+    -- The right type is not yet a value the commands could have set. A file
+    -- edited by hand gets the default rather than a setting nothing can
+    -- print sensibly.
+    local buy = M.config.cureBuy
+    if buy ~= "herbs" and buy ~= "minerals" and buy ~= "either" then
+        M.config.cureBuy = CONFIG_DEFAULTS.cureBuy
+    end
+    local low = M.config.cureLow
+    if low ~= low or low < 0 or low == math.huge then
+        M.config.cureLow = CONFIG_DEFAULTS.cureLow
+    end
     S.loaded = "loaded"
     S.loadedCount = count(M.targets)
     return true
@@ -990,6 +1001,16 @@ function M.setTarget(what, amount)
     if cap and amount > cap then
         warn(string.format("%s caps at %d in the rift (HELP 7.14); "
             .. "keeping your target at %d anyway.", key, cap, amount))
+    end
+    -- Since 0.2.0 an item target on something absent from the frames reads as
+    -- none held, so a misspelt one would call for the whole amount for ever.
+    -- A name no listing has filed and the rift is not holding is said out
+    -- loud: it may be real (M.CATEGORY is a lower bound), or a typo.
+    if not heading(what) and not M.CATEGORY[key] and M.rift[key] == nil
+        and not M.GMCP_ABSENT[key] then
+        warn(key .. " is in no RIFT listing on file and not in the rift now, "
+            .. "so it reports as none held. If that is a typo, `restock forget "
+            .. key .. "`.")
     end
     if M.GMCP_ABSENT[key] then
         warn(key .. " is in RIFT listings but never sent over GMCP, so the "

@@ -52,6 +52,11 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   is what it holds instead. Then the arithmetic on the October listing's own
   numbers: four cures under 500, a mineral making up a short herb, and
   skullcap counting toward both its pairs.
+- **Settings round-tripping through the file**, every key `save` writes read
+  back by `load`, with a hand-edited `cureBuy` or `cureLow` that no command
+  could have set falling back to its default. Also that an item target on a
+  name nothing has shown is called out as a possible typo when it is set,
+  since it would otherwise read as none held for ever.
 - **An unknown name surfacing** under `Unsorted` and being named by `diag`
   rather than vanishing or being guessed into a heading.
 - **An empty rift**, which is the state at every login until the first frame
