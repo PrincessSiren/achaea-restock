@@ -1,7 +1,8 @@
 # What it knows, and what it does not
 
 Two tables carry everything this package claims about Achaea. Both come from
-captures, and both have holes that are recorded rather than filled.
+captures, and both have holes that are recorded rather than filled. A third,
+`M.CURES`, is in [cure-pairs.md](cure-pairs.md).
 
 ## `M.CATEGORY` — which heading a name sits under
 
@@ -17,8 +18,12 @@ Minerals
 [   85] bisemutum              [  378] calcite                [ 1000] ferrum
 ```
 
-`M.CATEGORY` is a transcription of one such listing — 56 names under nine
-headings, captured 18th September 2026. `M.CATEGORY_ORDER` is the game's own
+`M.CATEGORY` is a transcription of two such listings — 75 names under ten
+headings, captured 18th September and 15th October 2026. Neither is a superset
+of the other: kelp and irid were held the first time and not the second, and
+were simply not listed. That is also the best evidence on file that an item at
+zero drops out of the listing, which is why a `List` replaces rather than
+merges. `M.CATEGORY_ORDER` is the game's own
 order, which the reports walk rather than sorting, so the output reads the way
 `RIFT` does.
 
@@ -29,10 +34,13 @@ than being sorted into whichever heading looks right. Extending the table means
 capturing a listing that shows the heading — type `RIFT` in game — not
 recalling one.
 
-`Reagent` is worth one note: it is singular in the listing and has exactly one
-row, `wyrm tongue`. Whether the heading is always singular or agrees with its
-contents is not settled by one capture, and it matters to anything matching
-headings as literal strings.
+`Reagent` is worth one note: the first listing printed it over one row and the
+second printed `Reagents` over two, so the heading agrees with its count. The
+key stays `Reagent`, so a target saved by 0.1.x still applies, and
+`restock reagent` and `restock reagents` both work.
+
+`Misc` appeared in the second listing, over one row (`gleam`). `HELP 7.14`
+states no cap for it.
 
 ## `M.CAP` — what the rift will hold
 
@@ -74,8 +82,10 @@ is simply unstated. One scroll cannot tell you which.
 not in the table. A cap that is wrong by being too high is a `restock` that
 cheerfully tells you to buy ore the rift will refuse.
 
-The capture does not help: ferrum sits at exactly 1000, which is a number below
-a ceiling and nothing more.
+The captures narrow it without closing it: ferrum sat at exactly 1000 in the
+first, and potash at 2351 in the second. So if minerals have a cap it is above
+2350, which rules out the fluids' 1000 and is consistent with 2500, and says
+nothing more.
 
 **To close it**, put minerals into the rift until the game refuses, and capture
 what it says. Then change `M.CAP` and the assertion in `test_harness.lua` in

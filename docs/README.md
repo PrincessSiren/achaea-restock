@@ -10,6 +10,9 @@ that looks arbitrary until you know what it is guarding against.
 - **[What it knows, and what it does not](what-it-knows.md)** — the two tables,
   the captures behind them, and the hole in `HELP 7.14` that is deliberately
   still a hole.
+- **[Cure pairs](cure-pairs.md)** — why a herb and a mineral are counted
+  together, where the pairing comes from, and the twelve minerals whose rift
+  names are still a guess.
 - **[Why nothing ships with a target](why-no-defaults.md)** — the difference
   between a fact about the game and a preference, and why the package refuses
   to guess the second one.

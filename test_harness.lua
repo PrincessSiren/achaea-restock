@@ -89,9 +89,10 @@ local M = restock
 -- ---------------------------------------------------------------------------
 
 do
-    eq(#M.CATEGORY_ORDER, 9, "nine headings in the listing's order")
+    eq(#M.CATEGORY_ORDER, 10, "ten headings in the listing's order")
     eq(M.CATEGORY_ORDER[1], "Herbs", "Herbs is first, as RIFT prints it")
-    eq(M.CATEGORY_ORDER[9], "Shipcomm", "Shipcomm is last")
+    eq(M.CATEGORY_ORDER[9], "Shipcomm", "Shipcomm is ninth")
+    eq(M.CATEGORY_ORDER[10], "Misc", "Misc is last")
 
     -- Every heading in the order list is one something is actually filed
     -- under, and every category used is a heading in the order list. A typo in
@@ -102,17 +103,21 @@ do
         used[category] = (used[category] or 0) + 1
         total = total + 1
     end
-    eq(total, 56, "56 names transcribed from RIFT 2026-09-18.txt")
+    -- 56 from the September listing, 19 more from the October one.
+    eq(total, 75, "75 names transcribed from two RIFT listings")
     for _, head in ipairs(M.CATEGORY_ORDER) do
         ok(used[head], "heading has at least one name: " .. head)
         used[head] = nil
     end
     eq(next(used), nil, "no name filed under a heading not in the order list")
 
-    -- The per-heading counts the capture printed.
+    -- The per-heading counts of the two captures together. Neither listing
+    -- is a superset of the other: kelp and irid were held in September and
+    -- not in October, which is why the union is what is counted.
     local want = {
-        Herbs = 20, Minerals = 5, Elixirs = 7, Salves = 5, Inks = 6,
-        Reagent = 1, Ingredients = 4, Commodities = 7, Shipcomm = 1,
+        Herbs = 21, Minerals = 9, Elixirs = 7, Salves = 5, Inks = 6,
+        Reagent = 3, Ingredients = 6, Commodities = 16, Shipcomm = 1,
+        Misc = 1,
     }
     local got = {}
     for _, category in pairs(M.CATEGORY) do
@@ -126,6 +131,53 @@ do
     eq(M.CATEGORY["myrrh gum"], "Herbs", "myrrh gum keeps its space")
     eq(M.CATEGORY["wyrm tongue"], "Reagent", "wyrm tongue keeps its space")
     eq(M.CATEGORY["blue ink"], "Inks", "blue ink keeps its space")
+    eq(M.CATEGORY["silver bar"], "Commodities", "silver bar keeps its space")
+    eq(M.CATEGORY["lumic moss"], "Reagent", "lumic moss is a reagent, not irid")
+end
+
+-- ---------------------------------------------------------------------------
+-- the cure pairs, against the shape of HELP 13.7.1
+-- ---------------------------------------------------------------------------
+
+do
+    -- 13.7.1 lists twenty-one minerals and gives each the exact line of one
+    -- herb. So: twenty-one rows, every mineral once, every herb once except
+    -- skullcap, which is two cures (eaten and smoked) and so two rows.
+    eq(#M.CURES, 21, "one row per mineral in 13.7.1")
+    local herbs, minerals = {}, {}
+    for _, pair in ipairs(M.CURES) do
+        local herb, mineral = pair[1], pair[2]
+        herbs[herb] = (herbs[herb] or 0) + 1
+        minerals[mineral] = (minerals[mineral] or 0) + 1
+        -- Every herb is one a listing has shown under Herbs. That is what
+        -- makes the rift's short names (ash, elm, irid, pear) safe to use.
+        eq(M.CATEGORY[herb], "Herbs", "the cure herb is a rift herb: " .. herb)
+        -- A mineral is either one a listing has shown under Minerals or one
+        -- no listing has shown at all -- never a name filed somewhere else.
+        local filed = M.CATEGORY[mineral]
+        ok(filed == nil or filed == "Minerals",
+            "the cure mineral is not filed under another heading: " .. mineral)
+    end
+    for mineral, n in pairs(minerals) do
+        eq(n, 1, "each mineral pairs once: " .. mineral)
+    end
+    for herb, n in pairs(herbs) do
+        eq(n, herb == "skullcap" and 2 or 1, "rows for " .. herb)
+    end
+    eq(herbs.burdock, nil, "burdock is not in 13.7.1, so it pairs with nothing")
+
+    -- Every mineral the listings have shown is in a pair. Nine of them; if a
+    -- tenth appears under Minerals and is not a cure, this is where it shows.
+    local seen = 0
+    for name, category in pairs(M.CATEGORY) do
+        if category == "Minerals" then
+            seen = seen + 1
+            ok(minerals[name], "a listed mineral is in a pair: " .. name)
+        end
+    end
+    eq(seen, 9, "nine minerals seen in a listing")
+    ok(M.mineralSeen("cinnabar"), "cinnabar has been seen")
+    ok(not M.mineralSeen("stannum"), "stannum has not")
 end
 
 -- ---------------------------------------------------------------------------
@@ -276,6 +328,131 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- cure arithmetic, on the herbs and minerals of RIFT 2026-10-15
+-- ---------------------------------------------------------------------------
+
+local OCTOBER = {
+    ash = 318, bayberry = 398, bellwort = 641, bloodroot = 2072, burdock = 599,
+    cohosh = 249, echinacea = 554, elm = 1185, ginger = 456, ginseng = 671,
+    goldenseal = 613, hawthorn = 511, kola = 2150, lobelia = 1625,
+    ["myrrh gum"] = 684, pear = 155, sileris = 2447, skullcap = 1561,
+    valerian = 353,
+    aurum = 576, bisemutum = 564, calcite = 678, cinnabar = 299,
+    ferrum = 1000, malachite = 260, potash = 2351, quartz = 30, realgar = 249,
+}
+
+do
+    local list = {}
+    for name, amount in pairs(OCTOBER) do
+        list[#list + 1] = { name = name, amount = amount }
+    end
+    gmcp.IRE.Rift.List = list
+    raise("gmcp.IRE.Rift.List")
+    M.targets = {}
+    M.config.slack = 0
+    M.config.cureBuy = "either"
+
+    -- Under 500 together: cohosh 249, ash 318, bayberry 398 and ginger 456,
+    -- none with a mineral held. Valerian 353 is short alone and not with
+    -- realgar's 249; pear 155 is short alone and not with calcite's 678.
+    local rows = M.cureShortfall(500)
+    eq(#rows, 4, "four cures under 500, herb and mineral together")
+    eq(rows[1].herb, "cohosh", "worst first")
+    eq(rows[1].buy, 251, "buy = threshold - herb - mineral")
+    eq(rows[4].herb, "ginger", "least short last")
+    eq(rows[4].buy, 44, "buy = 500 - 456")
+    for _, row in ipairs(rows) do
+        ok(row.herb ~= "valerian" and row.herb ~= "pear",
+            "a mineral makes up a short herb: " .. row.herb)
+    end
+
+    -- Kelp and irid are not listed at all: an item at zero drops out of a
+    -- List. Their minerals carry them.
+    local all = M.cureShortfall()
+    eq(#all, 21, "every pair, with no threshold")
+    for _, row in ipairs(all) do
+        if row.herb == "irid" then
+            eq(row.have, 2351, "no irid, all potash")
+        elseif row.herb == "valerian" then
+            eq(row.have, 602, "valerian 353 + realgar 249")
+        end
+    end
+
+    -- Skullcap counts toward both its cures, since one stock serves either.
+    local skull = 0
+    for _, row in ipairs(all) do
+        if row.herb == "skullcap" then
+            skull = skull + 1
+            eq(row.herbHave, 1561, "skullcap counts in full toward " .. row.mineral)
+        end
+    end
+    eq(skull, 2, "skullcap appears under both its minerals")
+
+    -- Slack applies here as it does to item targets: ginger is 44 short.
+    M.config.slack = 50
+    eq(#M.cureShortfall(500), 3, "slack drops what is nearly stocked")
+    M.config.slack = 0
+
+    -- The dispatcher.
+    M.config.cureLow = 0
+    clearEcho()
+    ok(not M.cures(""), "no threshold, nothing to report")
+    ok(echoedText():find("restock cures 500", 1, true), "...and says how to set one")
+    ok(M.cures("500"), "a number sets the threshold")
+    eq(M.config.cureLow, 500, "...and it is kept")
+
+    clearEcho()
+    ok(M.cures(""), "the report runs")
+    local text = echoedText()
+    ok(text:find("cohosh"), "...naming the worst")
+    ok(text:find("gypsum?", 1, true), "...marking a mineral no listing has shown")
+    ok(not text:find("cinnabar?", 1, true), "...and not one a listing has")
+    ok(text:find("either half", 1, true), "...saying either half will do")
+    ok(not text:find("buy 251 cohosh", 1, true), "...without picking one")
+
+    ok(M.cures("herb"), "herb is accepted")
+    eq(M.config.cureBuy, "herbs", "...as herbs")
+    clearEcho()
+    M.cures("")
+    ok(echoedText():find("buy 251 cohosh", 1, true), "herbs names the herb")
+    ok(M.cures("minerals"), "minerals is accepted")
+    clearEcho()
+    M.cures("")
+    ok(echoedText():find("buy 251 gypsum", 1, true), "minerals names the mineral")
+    ok(M.cures("either"), "either is accepted")
+
+    ok(not M.cures("bogus"), "anything else is refused")
+    ok(not M.cures("-5"), "a negative threshold is refused")
+    eq(M.config.cureLow, 500, "...and changes nothing")
+
+    clearEcho()
+    ok(M.cures("all"), "all prints every pair")
+    ok(echoedText():find("potash"), "...stocked ones included")
+
+    M.config.cureLow = 100
+    clearEcho()
+    ok(M.cures(""), "the report runs when nothing is short")
+    ok(echoedText():find("Every cure has at least 100", 1, true), "...and says so")
+
+    -- The main report carries the cure section, and a threshold alone is
+    -- enough to opt into it.
+    M.config.cureLow = 500
+    clearEcho()
+    ok(M.report(), "restock reports on cures with no item target set")
+    ok(echoedText():find("cohosh"), "...naming the short ones")
+    M.targets.Herbs = 300
+    clearEcho()
+    ok(M.report(), "...and alongside item targets")
+    text = echoedText()
+    ok(text:find("Below target", 1, true) and text:find("Cures below", 1, true),
+        "...both sections")
+    M.targets = {}
+    ok(M.cures("0"), "0 turns it off")
+    clearEcho()
+    ok(not M.report(), "off, and with no targets, the report declines again")
+end
+
+-- ---------------------------------------------------------------------------
 -- a name the table has never seen
 -- ---------------------------------------------------------------------------
 
@@ -375,6 +552,7 @@ do
     ok(not M.reportCategory("nonesuch"), "an unknown heading is refused")
     ok(echoedText():find("Herbs"), "...listing the real ones")
     clearEcho()
+    ok(M.reportCategory("reagents"), "the plural heading is the same heading")
     ok(M.reportCategory("minerals"), "a heading with nothing in it prints")
     ok(echoedText():find("nothing in the rift"), "...and says it is empty")
 
@@ -533,7 +711,7 @@ do
             "restock%.report%(%)", "restock%.help%(%)", "restock%.listing%(%)",
             "restock%.reportCategory", "restock%.targetList%(%)",
             "restock%.setTarget", "restock%.forget", "restock%.setSlack",
-            "restock%.refresh%(%)", "restock%.diag%(%)",
+            "restock%.refresh%(%)", "restock%.diag%(%)", "restock%.cures",
         }) do
             ok(text:find(command), "the XML wires up " .. command)
         end

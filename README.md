@@ -25,6 +25,16 @@ restock target health 1500
 restock
 ```
 
+Or watch cures rather than items. Every mineral does exactly what one herb
+does (`HELP 13.7.1`), and server-side curing falls back to the other when one
+runs out, so this counts each pair together and names the herb to buy:
+
+```
+restock cures 500
+restock cures herbs
+restock
+```
+
 A release is one pinned version: it is tagged `v<version>`, the `.mpackage`
 attached to it is built from that tag, and `restock help` prints the same
 version back. The version alone cannot tell you whether Mudlet is running what
@@ -43,13 +53,17 @@ older install.
 | `restock target` | Every target you have set |
 | `restock target <heading\|item> <n>` | Hold n of it — this is what opts it in |
 | `restock forget <heading\|item>` | Drop a target again |
+| `restock cures [n]` | Herb + mineral pairs under n together; n sets it, 0 turns it off |
+| `restock cures all` | Every pair, stocked or not |
+| `restock cures herbs\|minerals\|either` | Which half the cure report says to buy |
 | `restock slack [n]` | How far below target still counts as stocked |
 | `restock refresh` | Ask the game for the whole rift again |
 | `restock diag` | Build stamp, frames seen, and any held item with no heading |
 | `restock help` | This list |
 
-The headings are the game's own, from a `RIFT` listing: Herbs, Minerals,
-Elixirs, Salves, Inks, Reagent, Ingredients, Commodities, Shipcomm.
+The headings are the game's own, from `RIFT` listings: Herbs, Minerals,
+Elixirs, Salves, Inks, Reagent (or Reagents), Ingredients, Commodities,
+Shipcomm, Misc.
 
 ## Two things it is honest about
 

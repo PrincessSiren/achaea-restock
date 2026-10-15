@@ -53,7 +53,7 @@ HELP_URL = SOURCE_URL
 # the digest against the one the release published. A wall clock in the
 # archive would throw that away for a field nothing reads back. Move it when
 # the version moves.
-CREATED = "2026-09-18"
+CREATED = "2026-10-15"
 LUA = HERE / "AchaeaRestock.lua"
 XML = HERE / "AchaeaRestock.xml"
 MPACKAGE = HERE / "AchaeaRestock.mpackage"
@@ -93,11 +93,18 @@ ALIASES: list[tuple[str, str, str, str, str]] = [
     ),
     (
         "heading",
-        r"^restock\s+(herbs|minerals|elixirs|salves|inks|reagent"
-        r"|ingredients|commodities|shipcomm)$",
+        r"^restock\s+(herbs|minerals|elixirs|salves|inks|reagents?"
+        r"|ingredients|commodities|shipcomm|misc)$",
         "restock.reportCategory(matches[2])",
         "restock <heading>",
         "one heading: what you hold, and what is short",
+    ),
+    (
+        "cures",
+        r"^restock\s+cures(?:\s+(\S+))?$",
+        "restock.cures(matches[2])",
+        "restock cures [n|all|herbs|minerals]",
+        "herb + mineral pairs that cure the same thing; n sets the threshold",
     ),
     (
         "targets",
@@ -228,6 +235,18 @@ the report:
 ```
 restock target herbs 500
 restock target health 1500
+restock
+```
+
+Every mineral does exactly what one herb does (HELP 13.7.1), and
+server-side curing falls back to the other when you run out of one, so
+`restock cures 500` watches each pair together -- 300 ash and 300 stannum are
+600 sanity cures -- and `restock cures herbs` makes the report name the herb
+to buy rather than either:
+
+```
+restock cures 500
+restock cures herbs
 restock
 ```
 

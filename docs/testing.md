@@ -14,8 +14,8 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
 
 ## What it covers
 
-- **The transcription.** 56 names, nine headings, the per-heading counts the
-  capture printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
+- **The transcription.** 75 names, ten headings, the per-heading counts the
+  two captures printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
   names (`myrrh gum`, `wyrm tongue`, `blue ink`) are checked by name, being the
   easy thing to lose.
 - **The hole in `HELP 7.14`.** `M.CAP.Minerals` must still be `nil`. This is the
@@ -27,6 +27,13 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   listed is gone rather than remembered at its last value.
 - **The arithmetic** — shortfall ordering, `buy = target - have`, slack, item
   targets beating heading targets.
+- **The cure pairs, against the shape of `HELP 13.7.1`.** 21 rows, every
+  mineral once, every herb once except skullcap, every herb one a listing has
+  shown under Herbs, and no mineral filed under some other heading. The
+  scroll is not in this repository, so the harness cannot read it; the shape
+  is what it holds instead. Then the arithmetic on the October listing's own
+  numbers: four cures under 500, a mineral making up a short herb, and
+  skullcap counting toward both its pairs.
 - **An unknown name surfacing** under `Unsorted` and being named by `diag`
   rather than vanishing or being guessed into a heading.
 - **An empty rift**, which is the state at every login until the first frame
