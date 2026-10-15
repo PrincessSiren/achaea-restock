@@ -1,7 +1,8 @@
 # What it knows, and what it does not
 
 Two tables carry everything this package claims about Achaea. Both come from
-captures, and both have holes that are recorded rather than filled.
+captures, and both have holes that are recorded rather than filled. A third,
+`M.CURES`, is in [cure-pairs.md](cure-pairs.md).
 
 ## `M.CATEGORY` — which heading a name sits under
 
@@ -17,8 +18,12 @@ Minerals
 [   85] bisemutum              [  378] calcite                [ 1000] ferrum
 ```
 
-`M.CATEGORY` is a transcription of one such listing — 56 names under nine
-headings, captured 18th September 2026. `M.CATEGORY_ORDER` is the game's own
+`M.CATEGORY` is a transcription of such listings — 76 names under ten
+headings, captured 18th September and 15th October 2026. Neither is a superset
+of the other: kelp and irid were held the first time and not the second, and
+were simply not listed. That is also the best evidence on file that an item at
+zero drops out of the listing, which is why a `List` replaces rather than
+merges. `M.CATEGORY_ORDER` is the game's own
 order, which the reports walk rather than sorting, so the output reads the way
 `RIFT` does.
 
@@ -29,10 +34,13 @@ than being sorted into whichever heading looks right. Extending the table means
 capturing a listing that shows the heading — type `RIFT` in game — not
 recalling one.
 
-`Reagent` is worth one note: it is singular in the listing and has exactly one
-row, `wyrm tongue`. Whether the heading is always singular or agrees with its
-contents is not settled by one capture, and it matters to anything matching
-headings as literal strings.
+`Reagent` is worth one note: the first listing printed it over one row and the
+second printed `Reagents` over two, so the heading agrees with its count. The
+key stays `Reagent`, so a target saved by 0.1.x still applies, and
+`restock reagent` and `restock reagents` both work.
+
+`Misc` appeared in the second listing, over one row (`gleam`). `HELP 7.14`
+states no cap for it.
 
 ## `M.CAP` — what the rift will hold
 
@@ -58,25 +66,97 @@ Where the scroll hedges, `M.CAP_NOTE` carries the hedge rather than dropping
 it — "most curatives, venoms, and other fluids" is not the same as *all* of
 them.
 
-## The hole: minerals
-
-**`M.CAP.Minerals` is `nil` on purpose, and the harness fails if it stops
-being `nil`.**
+## Minerals: a reading, not a quotation
 
 The capacity table caps "each type of herb, commodity, reagent, or crystal" and
 never says *mineral*. The scroll's own "What Goes In The Rift?" paragraph, four
 paragraphs earlier, lists "Herbs, minerals, inks, crystals, commodities,
-shipcommodities and common fluids" — minerals and crystals as separate things.
-So either minerals *are* the capacity table's crystals, at 2500, or their cap
-is simply unstated. One scroll cannot tell you which.
+shipcommodities and common fluids", naming minerals and crystals separately.
 
-2500 is the obvious guess and may well be right, which is precisely why it is
-not in the table. A cap that is wrong by being too high is a `restock` that
-cheerfully tells you to buy ore the rift will refuse.
+Through 0.1.x `M.CAP.Minerals` was `nil` for that reason, and the harness
+failed if it stopped being `nil`. **Since 0.2.0 it is 2500**, on the owner's
+reading that 7.14's "crystal" means the minerals, the edible stones `RIFT` lists
+under that heading. That is a reading of the scroll by someone who plays the
+game, not a capture of the game refusing the 2501st, and the package says so:
+`M.CAP_NOTE.Minerals` is printed beside the cap, and the harness fails if the
+note goes.
 
-The capture does not help: ferrum sits at exactly 1000, which is a number below
-a ceiling and nothing more.
+The listings agree as far as they reach. Ferrum sat at exactly 1000 in the
+first, and potash at 2351 and then 2349 in the second, so whatever the cap is,
+it is above 2350. A capture of the game refusing a deposit would settle it for
+good.
 
-**To close it**, put minerals into the rift until the game refuses, and capture
-what it says. Then change `M.CAP` and the assertion in `test_harness.lua` in
-the same commit.
+## `M.GMCP_NAMES`: the same item, two names
+
+GMCP and the `RIFT` listing do not always agree on what an item is called. The
+first live run turned up nine items that `restock diag` could not place, each
+held at exactly the amount a listing taken minutes earlier printed under another
+name:
+
+| GMCP | `RIFT` |
+| --- | --- |
+| `blueink`, `goldink`, `greenink`, `purpleink`, `redink`, `yellowink` | `blue ink` … `yellow ink` |
+| `myrrh` | `myrrh gum` |
+| `goldbar` | `gold` |
+| `silver` | `silverore` |
+
+The inks just lose a space, but the metals do not follow any rule.
+GMCP's `silver` is the 34 of `silverore`, not the 2466 of `silver bar`. So the
+table is a list of observed pairs, not derived by rule, with one exception.
+
+**GMCP appears to send each item's short name.** `HELP 18.5` and `18.5.1` list
+the short names of every harvestable herb and Transmutation mineral, and every
+herb and mineral seen over GMCP matches its short name, `myrrh` among them.
+The inks and metals have no short-name scroll on file. The pattern predicts
+one row nobody has seen yet: 18.5 gives irid moss the short name `Moss`, while
+the listing prints `irid`. So `moss → irid` is in the table, marked in
+`M.GMCP_PREDICTED`, and `restock diag` says whether it has turned up. If GMCP
+sends `irid` instead, the row never fires, so having it costs nothing.
+
+`absorb()` translates as each frame lands. From there on, everything uses the
+name `RIFT` prints: headings, caps, the cure pairs, and the targets you type,
+which accept either spelling. Before this, the inks went uncapped and
+`myrrh gum` read as zero in its cure pair.
+
+## `M.GMCP_ABSENT`: listed, and never sent
+
+The same run had 72 items in the listing and 70 over GMCP. A `restock all`
+taken beside a later listing held every row of it except two: **`silver bar`
+(2466) and `shipwood` (85)**. They are in every October listing and have not
+arrived in any frame under any name. Why those two is not known. One is a
+commodity and one the only ship commodity, and neither fact explains it,
+so the table grows from the same comparison and nothing else.
+
+To the package, an item it never hears about looks exactly like one held at
+zero. So the report leaves these two out rather than calling for the whole
+target every time, `restock target` warns when you set one, and `restock diag`
+names them. If one turns up in a frame after all, diag says the table is out of
+date.
+
+## Items at zero
+
+An item taken to zero drops out of the listing, and out of GMCP too (kelp and
+irid, both captures). So the rift's frames never mention the case that matters
+most to a shopping list: none held. Since 0.2.0 an *item* target on something
+absent from the frames is reported as none held and short by the whole target.
+Through 0.1.x it was silently never reported. A *heading* target cannot do this,
+because nothing says which names a heading would hold.
+
+## Buying sends no `Change`
+
+That same October listing printed `health` at 2000, while `restock all` run
+after it, from the frames, still held 1000. The difference was 1000 health
+bought between two listings, straight into the rift, and the frames never
+heard of it. A `Change` would have set 2000, one under another name would
+have shown up in `restock diag` as an item with no heading, and the `Change`
+counter read 105 on both sides of the listing. **A `restock refresh` then
+brought 2000 in**, so the whole-rift `List` carries a purchase and the
+`Change` stream does not.
+
+So every report that reads the rift (`restock`, `restock all`,
+`restock <heading>`, `restock cures`, `restock cures all`) asks for a `List`
+first and answers when it lands. If none comes back within `M.FRESH_WAIT`
+seconds (3), it answers from what it holds and says so. Commands that only
+change a setting do not wait.
+`restock refresh` asks for a whole new `List`, and what that says is the next
+thing to capture.

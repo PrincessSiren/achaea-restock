@@ -31,13 +31,28 @@ merge would leave it sitting at its last known value forever.
 
 `Change` patches one item in place.
 
-## What is not verified
+## What a live profile showed
 
-**This shape is read off Orion, not off a capture.** Orion's `Rift` script
-registers handlers for both events and reads exactly `item.name` and
-`item.amount`, which is the best evidence available without a live profile — but
-it is another package's code, not the game's output, and a claim here should
-say so.
+The shape was first read off Orion's `Rift` script, which reads exactly
+`item.name` and `item.amount`. **It held in a live profile on 15th October
+2026.** `restock diag` reported four `List` frames and a hundred `Change` frames
+absorbed, and 70 items with an amount each.
+
+The same run showed that **GMCP's names are not always the listing's**:
+`blueink` for "blue ink", `myrrh` for "myrrh gum", and `goldbar` and `silver`
+for "gold" and "silverore". `M.GMCP_NAMES` maps them back. **Two listed items
+never arrive at all**, `silver bar` and `shipwood`, and `M.GMCP_ABSENT` keeps
+the report from reading them as none held. The details of both are in
+[what-it-knows.md](what-it-knows.md).
+
+**Buying into the rift sends no `Change`.** 1000 health was bought straight
+into the rift, and a listing afterwards printed 2000 while the frames still
+held 1000. A `restock refresh` brought the 2000 in. So the reports ask for a
+`List` before answering, rather than trusting the `Change` stream to have
+kept up. That costs one round trip, and a timeout covers a request that goes
+unanswered.
+
+## What is still not verified
 
 Two specific things nobody here has confirmed:
 

@@ -35,7 +35,7 @@
 -- GMCP carries the amounts and not the categories. Mudlet asks for IRE.Rift in
 -- its own opening handshake (Core.Supports.Set, src/ctelnet.cpp), so no
 -- Core.Supports.Add is needed the way IRE.Target needs one -- but a frame is
--- { name, amount } per item and nothing else. Which of the nine headings a
+-- { name, amount } per item and nothing else. Which of the ten headings a
 -- name sits under is in the *listing* and only there, which is why M.CATEGORY
 -- exists at all and why it is transcribed from a capture rather than recalled.
 -- Type RIFT in game to print that listing again.
@@ -47,20 +47,32 @@
 -- same rule as the Occultist kit's DEFENCE_OFF and the Explorer's skip list.
 --
 -- M.CAP is HELP 7.14's capacity table, which is the game stating a ceiling --
--- so "how much can I even hold" needs no number anybody invented. Note the
--- hole in it: the scroll's own contents paragraph lists minerals and its
--- capacity table never mentions them, so M.CAP.Minerals is nil on purpose and
--- the harness fails if it stops being nil. Ferrum sitting at exactly 1000 in
--- the capture is a number below a ceiling and nothing more.
+-- so "how much can I even hold" needs no number anybody invented. One row of
+-- it is a reading rather than a quotation: the table caps "crystal" at 2500
+-- and never says mineral, and M.CAP.Minerals takes that 2500 on the owner's
+-- reading that the scroll's crystals are what RIFT heads Minerals. See M.CAP.
+--
+-- GMCP and the listing do not always agree on a name, either. GMCP says
+-- `blueink` and `myrrh` where RIFT prints "blue ink" and "myrrh gum", so
+-- M.GMCP_NAMES turns the one into the other as each frame lands, and
+-- everything past absorb() -- headings, cure pairs, targets you type -- uses
+-- the name RIFT prints.
 --
 -- Nothing ships with a target. A target is a preference rather than a game
 -- fact -- nobody carries 2500 ash -- so the package cannot invent one for you,
 -- and setting one is what opts a category into the report.
+--
+-- Since 0.2.0 there is a second kind of target, on a cure rather than an item.
+-- HELP 13.7.1 gives every mineral a herb that does the same thing, word for
+-- word, and server-side curing will use the other one when you run out of
+-- your own (CURING FALLBACK, HELP 13.7.8). So 300 ash and 300 stannum are 600
+-- sanity cures, and `restock cures 500` watches the pair rather than either.
+-- M.CURES is the pairing.
 
 restock = restock or {}
 local M = restock
 
-M.VERSION = "0.1.1"
+M.VERSION = "0.2.0"
 
 -- Both filled in by build.py, which appends them to the shipped copy of
 -- this file. Loaded from source they stay empty and "source", which is
@@ -98,11 +110,12 @@ S.loadedCount = S.loadedCount or 0
 -- sorting, so the output reads the way RIFT does.
 M.CATEGORY_ORDER = {
     "Herbs", "Minerals", "Elixirs", "Salves", "Inks",
-    "Reagent", "Ingredients", "Commodities", "Shipcomm",
+    "Reagent", "Ingredients", "Commodities", "Shipcomm", "Misc",
 }
 
--- name -&gt; heading, transcribed from one RIFT listing (18th September 2026).
--- A lower bound: it holds what that character was carrying and nothing else.
+-- name -&gt; heading, transcribed from two RIFT listings (18th September and 15th
+-- October 2026). A lower bound: it holds what that character was carrying and
+-- nothing else.
 M.CATEGORY = {
     -- Herbs
     ["ash"] = "Herbs", ["bayberry"] = "Herbs", ["bellwort"] = "Herbs",
@@ -110,12 +123,14 @@ M.CATEGORY = {
     ["echinacea"] = "Herbs", ["elm"] = "Herbs", ["ginger"] = "Herbs",
     ["ginseng"] = "Herbs", ["goldenseal"] = "Herbs", ["hawthorn"] = "Herbs",
     ["irid"] = "Herbs", ["kelp"] = "Herbs", ["kola"] = "Herbs",
-    ["lobelia"] = "Herbs", ["myrrh gum"] = "Herbs", ["sileris"] = "Herbs",
-    ["skullcap"] = "Herbs", ["valerian"] = "Herbs",
+    ["lobelia"] = "Herbs", ["myrrh gum"] = "Herbs", ["pear"] = "Herbs",
+    ["sileris"] = "Herbs", ["skullcap"] = "Herbs", ["valerian"] = "Herbs",
     -- Minerals
-    ["bisemutum"] = "Minerals", ["calcite"] = "Minerals",
+    ["aurum"] = "Minerals", ["bisemutum"] = "Minerals",
+    ["calcite"] = "Minerals", ["cinnabar"] = "Minerals",
     ["ferrum"] = "Minerals", ["malachite"] = "Minerals",
-    ["quartz"] = "Minerals",
+    ["potash"] = "Minerals", ["quartz"] = "Minerals",
+    ["realgar"] = "Minerals", ["stannum"] = "Minerals",
     -- Elixirs
     ["frost"] = "Elixirs", ["health"] = "Elixirs", ["immunity"] = "Elixirs",
     ["levitation"] = "Elixirs", ["mana"] = "Elixirs", ["speed"] = "Elixirs",
@@ -126,30 +141,86 @@ M.CATEGORY = {
     -- Inks
     ["blue ink"] = "Inks", ["gold ink"] = "Inks", ["green ink"] = "Inks",
     ["purple ink"] = "Inks", ["red ink"] = "Inks", ["yellow ink"] = "Inks",
-    -- Reagent (singular in the listing, with one row -- whether the heading
-    -- agrees with its contents is not settled by one capture)
-    ["wyrm tongue"] = "Reagent",
+    -- Reagent. The listing prints "Reagent" over one row and "Reagents" over
+    -- two, so the heading agrees with its count; the key stays singular so a
+    -- target saved under it by 0.1.x still applies, and both spellings are
+    -- accepted wherever a heading is typed.
+    ["wyrm tongue"] = "Reagent", ["fish scales"] = "Reagent",
+    ["lumic moss"] = "Reagent",
     -- Ingredients
-    ["fat"] = "Ingredients", ["salt"] = "Ingredients",
+    ["fat"] = "Ingredients", ["meat"] = "Ingredients",
+    ["poultry"] = "Ingredients", ["salt"] = "Ingredients",
     ["spice"] = "Ingredients", ["sugarcane"] = "Ingredients",
     -- Commodities
-    ["cloth"] = "Commodities", ["fibre"] = "Commodities",
-    ["iron"] = "Commodities", ["leather"] = "Commodities",
-    ["rope"] = "Commodities", ["stone"] = "Commodities",
-    ["wood"] = "Commodities",
+    ["bone"] = "Commodities", ["cloth"] = "Commodities",
+    ["coal"] = "Commodities", ["fibre"] = "Commodities",
+    ["gems"] = "Commodities", ["gold"] = "Commodities",
+    ["iron"] = "Commodities", ["ironore"] = "Commodities",
+    ["leather"] = "Commodities", ["rawgems"] = "Commodities",
+    ["rope"] = "Commodities", ["silver bar"] = "Commodities",
+    ["silverore"] = "Commodities", ["steel"] = "Commodities",
+    ["stone"] = "Commodities", ["wood"] = "Commodities",
     -- Shipcomm
     ["shipwood"] = "Shipcomm",
+    -- Misc (first seen 15th October 2026; HELP 7.14 states no cap for it)
+    ["gleam"] = "Misc",
+}
+
+-- Herb and mineral pairs that cure the same thing, from HELP 13.7.1. Every
+-- mineral's line there is word for word one herb's line, and that identity
+-- is the whole of the pairing: no row here was matched by what the two
+-- sound like. Twenty-one minerals, so twenty-one rows, each mineral once.
+-- Skullcap is in two, because it is two cures: eaten it is azurite's
+-- deathsight, smoked it is malachite's rebounding.
+--
+-- These are the names the *rift* uses, which are not always the scroll's.
+-- The rift says ash, elm and irid where 13.7.1 says Prickly Ash, Slippery Elm
+-- and Irid Moss -- the scroll's own cross-references ("Ash See Prickly Ash")
+-- make those three certain. "pear" is Prickly Pear by elimination: it is
+-- under Herbs, and no other herb in 13.7.1 has the word in it.
+--
+-- Every mineral here is the short name HELP 18.5.1 gives it, and the set is
+-- exactly that scroll's twenty-one. Each of the ten held so far reached GMCP
+-- under that short name, stannum included, which was bought to test it.
+-- Burdock is in the rift and not in 13.7.1 at all, so it pairs with nothing.
+M.CURES = {
+    { "ash",       "stannum" },     -- sanity afflictions
+    { "bayberry",  "arsenic" },     -- gives blindness
+    { "bellwort",  "cuprum" },      -- altruism
+    { "bloodroot", "magnesium" },   -- paralysis and slickness
+    { "cohosh",    "gypsum" },      -- gives insomnia
+    { "echinacea", "dolomite" },    -- gives third eye
+    { "elm",       "cinnabar" },    -- (smoked) curses and afflictions
+    { "ginger",    "antimony" },    -- fluid level
+    { "ginseng",   "ferrum" },      -- blood and skin
+    { "goldenseal", "plumbum" },    -- disharmony
+    { "hawthorn",  "calamine" },    -- gives deafness
+    { "irid",      "potash" },      -- health and mana
+    { "kelp",      "aurum" },       -- weakened muscles
+    { "kola",      "quartz" },      -- waking at will
+    { "lobelia",   "argentum" },    -- phobias and pathos
+    { "myrrh gum", "bisemutum" },   -- lesson speed
+    { "pear",      "calcite" },     -- breathing underwater
+    { "sileris",   "quicksilver" }, -- (applied) Serpent fangs
+    { "skullcap",  "azurite" },     -- (eaten) deathsight
+    { "skullcap",  "malachite" },   -- (smoked) rebounding
+    { "valerian",  "realgar" },     -- (smoked) disfigurement and slickness
 }
 
 -- HELP 7.14's capacity table, by the heading it applies to.
 --
--- Minerals is absent and must stay absent. 7.14 caps "each type of herb,
--- commodity, reagent, or crystal" and never says mineral, while its own
--- "What Goes In The Rift?" paragraph lists minerals separately from crystals.
--- Either they are the table's crystals or their cap is unstated, and one
--- capture cannot tell you which. The harness asserts this hole is still here.
+-- Minerals is the one row the scroll does not name. 7.14 caps "each type of
+-- herb, commodity, reagent, or crystal" at 2500 and never says mineral, though
+-- its own "What Goes In The Rift?" paragraph lists minerals and crystals
+-- separately. Through 0.1.x the row was left empty for that reason. It is
+-- 2500 since 0.2.0 on the owner's reading that 7.14's crystals are the
+-- minerals, the same edible stones RIFT lists under that heading -- a reading
+-- of the scroll, not a capture of the game refusing the 2501st, and M.CAP_NOTE
+-- says so wherever the cap is printed. Potash at 2349 in a listing of 15th
+-- October 2026 is the highest mineral on file, and agrees with it.
 M.CAP = {
     Herbs       = 2500,
+    Minerals    = 2500,
     Elixirs     = 1000,
     Salves      = 1000,
     Inks        =  750,
@@ -168,9 +239,70 @@ M.ITEM_CAP = {
 
 -- Where 7.14 hedges. Printed beside a cap rather than silently dropped.
 M.CAP_NOTE = {
-    Elixirs = "7.14 says \"most\" curatives and fluids",
-    Salves  = "7.14 says \"most\" curatives and fluids",
+    Elixirs  = "7.14 says \"most\" curatives and fluids",
+    Salves   = "7.14 says \"most\" curatives and fluids",
+    Minerals = "7.14 says \"crystal\", read as minerals",
 }
+
+-- GMCP name -&gt; the name RIFT prints, where the two differ. Each row was read
+-- off one session on 15th October 2026: `restock diag` listed the GMCP names
+-- it could not place, a RIFT listing taken minutes before printed the same
+-- amounts under these names, and no other row in the listing had that amount.
+-- Inks lose their space, myrrh gum loses "gum", and the two metals swap
+-- around: GMCP's `goldbar` is RIFT's "gold" and its `silver` is "silverore".
+-- Grown the same way M.CATEGORY is: from a diag line and a listing side by
+-- side, never by guessing what a name probably becomes.
+--
+-- What GMCP sends looks like the item's short name, while RIFT prints
+-- something longer. HELP 18.5 and 18.5.1 list the short names of every
+-- harvestable herb and Transmutation mineral, and every herb and mineral
+-- GMCP has sent matches its short name -- myrrh included, which 18.5 gives
+-- as "Myrrh, a ball of myrrh gum". Inks and metals have no such scroll on
+-- file, so for them the rows below are observation only.
+--
+-- One row is a prediction from that, and is the only one: 18.5 gives irid
+-- moss the short name "Moss", while RIFT prints "irid". Nobody has held irid
+-- since the package went live, so GMCP has not been seen sending either name.
+-- If it sends "moss", this row is what keeps irid from reading as none held
+-- in its pair with potash. If it sends "irid", the row never fires. Either
+-- way, M.GMCP_PREDICTED tells `restock diag` to say which it has seen.
+M.GMCP_NAMES = {
+    blueink   = "blue ink",
+    goldink   = "gold ink",
+    greenink  = "green ink",
+    purpleink = "purple ink",
+    redink    = "red ink",
+    yellowink = "yellow ink",
+    myrrh     = "myrrh gum",
+    goldbar   = "gold",
+    silver    = "silverore",
+    moss      = "irid",       -- predicted from HELP 18.5; see above
+}
+
+-- Rows of M.GMCP_NAMES that come from a scroll rather than a sighting. A
+-- name here that arrives in a frame is recorded in S.gmcpSeen.
+M.GMCP_PREDICTED = {
+    moss = true,
+}
+
+-- Listed by RIFT and never sent over GMCP under any name. On 15th October
+-- 2026 a `restock all` beside a listing held every row but these two, at a
+-- time when GMCP had sent 71 items against the listing's 73. So the package
+-- cannot see them, and to it they would read as none held: a target on one
+-- would call for the whole amount every time. The report leaves them out and
+-- `restock target` says why. Why these two is not known -- one is a
+-- commodity and one the only ship commodity -- so the list grows from the
+-- same comparison and nothing else.
+M.GMCP_ABSENT = {
+    ["silver bar"] = true,
+    ["shipwood"]   = true,
+}
+
+--- The name RIFT prints for something, from either spelling of it.
+function M.listingName(name)
+    name = name:lower()
+    return M.GMCP_NAMES[name] or name
+end
 
 -- ---------------------------------------------------------------------------
 -- state the game feeds
@@ -188,6 +320,14 @@ local CONFIG_DEFAULTS = {
     -- How close to the target still counts as stocked. Buying 3 bloodroot is
     -- not worth a trip, and a list that says so every time gets ignored.
     slack = 0,
+    -- Herb and mineral together below this is short. 0 is off, and is where
+    -- it starts: like every other target, it is a preference.
+    cureLow = 0,
+    -- What the cure report tells you to buy: "herbs", "minerals" or "either".
+    -- Server-side curing eats one kind and falls back to the other, and which
+    -- is a CURING TRANSMUTATION setting this package cannot read -- the
+    -- STATUS line says "Curing Method: Concoctions" for herbs.
+    cureBuy = "either",
 }
 
 M.config = M.config or {}
@@ -256,6 +396,10 @@ end
 --- `restock herbs` both find one.
 local function heading(word)
     word = trim(word or ""):lower()
+    -- The listing prints "Reagents" once there are two of them.
+    if word == "reagents" then
+        word = "reagent"
+    end
     for _, name in ipairs(M.CATEGORY_ORDER) do
         if name:lower() == word then
             return name
@@ -375,6 +519,17 @@ function M.load()
             end
         end
     end
+    -- The right type is not yet a value the commands could have set. A file
+    -- edited by hand gets the default rather than a setting nothing can
+    -- print sensibly.
+    local buy = M.config.cureBuy
+    if buy ~= "herbs" and buy ~= "minerals" and buy ~= "either" then
+        M.config.cureBuy = CONFIG_DEFAULTS.cureBuy
+    end
+    local low = M.config.cureLow
+    if low ~= low or low &lt; 0 or low == math.huge then
+        M.config.cureLow = CONFIG_DEFAULTS.cureLow
+    end
     S.loaded = "loaded"
     S.loadedCount = count(M.targets)
     return true
@@ -395,7 +550,11 @@ local function absorb(item)
     if type(name) ~= "string" or not amount then
         return false
     end
-    M.rift[name] = amount
+    if M.GMCP_PREDICTED[name:lower()] then
+        S.gmcpSeen = S.gmcpSeen or {}
+        S.gmcpSeen[name:lower()] = true
+    end
+    M.rift[M.listingName(name)] = amount
     return true
 end
 
@@ -412,6 +571,16 @@ function M.onList()
     end
     S.lists = (S.lists or 0) + 1
     S.listedAt = os.time()
+    -- A report that asked for this List answers now.
+    if S.pending then
+        local report = S.pending
+        S.pending = nil
+        if S.pendingTimer and type(killTimer) == "function" then
+            pcall(killTimer, S.pendingTimer)
+        end
+        S.pendingTimer = nil
+        report()
+    end
     return true
 end
 
@@ -432,6 +601,43 @@ function M.refresh()
     end
     sendGMCP("IRE.Rift.Request")
     S.requested = true
+    return true
+end
+
+-- How long a report waits for the List it asked for before answering from
+-- what it already holds.
+M.FRESH_WAIT = 3
+
+--- Run a report against a List asked for now, rather than the frames held.
+---
+--- Buying into the rift sends no IRE.Rift.Change. On 15th October 2026, 1000
+--- health bought straight into it left the frames at 1000 while RIFT printed
+--- 2000, and only a `restock refresh` brought the 2000 in. So between a
+--- shop and the next List every report was stale, and stale in the one
+--- direction that matters: it still called for what had just been bought.
+--- Asking costs one GMCP round trip. If no List comes back in FRESH_WAIT
+--- seconds the report runs anyway, and says what it is reading from.
+---
+--- Without a timer to wait on -- plain luajit -- it runs at once.
+function M.fresh(report)
+    if type(tempTimer) ~= "function" or not M.refresh() then
+        return report()
+    end
+    if S.pendingTimer and type(killTimer) == "function" then
+        pcall(killTimer, S.pendingTimer)
+    end
+    S.pending = report
+    S.pendingTimer = tempTimer(M.FRESH_WAIT, function()
+        S.pendingTimer = nil
+        if S.pending then
+            local late = S.pending
+            S.pending = nil
+            warn(string.format("no answer to IRE.Rift.Request in %ds, so this "
+                .. "is from the last frames held -- anything bought since is "
+                .. "missing.", M.FRESH_WAIT))
+            late()
+        end
+    end)
     return true
 end
 
@@ -465,7 +671,7 @@ end
 --- Returns rows of { name, have, target, buy }, worst shortfall first.
 function M.shortfall(only)
     local rows = {}
-    for name, amount in pairs(M.rift) do
+    local function consider(name, amount)
         local category = M.CATEGORY[name]
         if not only or category == only or name == only then
             local target = M.targetOf(name)
@@ -479,11 +685,101 @@ function M.shortfall(only)
             end
         end
     end
+    for name, amount in pairs(M.rift) do
+        consider(name, amount)
+    end
+    -- An item at zero is not in the rift's frames at all, so the loop above
+    -- never meets it -- and none held is the shortfall that matters most.
+    -- Through 0.1.x a target on one was silently never reported. A heading
+    -- target cannot be helped this way, since nothing says which names a
+    -- heading would hold, but an item target names its item.
+    for name in pairs(M.targets) do
+        if M.rift[name] == nil and not heading(name)
+            and not M.GMCP_ABSENT[name] then
+            consider(name, 0)
+        end
+    end
     table.sort(rows, function(a, b)
         if a.buy ~= b.buy then return a.buy &gt; b.buy end
         return a.name &lt; b.name
     end)
     return rows
+end
+
+--- Every pair in M.CURES with what you hold of each half. With a threshold,
+--- only the pairs short of it, worst first; with none, all of them in the
+--- table's order. Rows are { herb, mineral, herbHave, mineralHave, have, buy }.
+function M.cureShortfall(threshold)
+    local rows = {}
+    for _, pair in ipairs(M.CURES) do
+        local herb, mineral = pair[1], pair[2]
+        local herbHave = M.rift[herb] or 0
+        local mineralHave = M.rift[mineral] or 0
+        local have = herbHave + mineralHave
+        local row = {
+            herb        = herb,
+            mineral     = mineral,
+            herbHave    = herbHave,
+            mineralHave = mineralHave,
+            have        = have,
+            buy         = threshold and math.max(threshold - have, 0) or 0,
+        }
+        if not threshold then
+            table.insert(rows, row)
+        elseif have + (M.config.slack or 0) &lt; threshold then
+            table.insert(rows, row)
+        end
+    end
+    if threshold then
+        table.sort(rows, function(a, b)
+            if a.buy ~= b.buy then return a.buy &gt; b.buy end
+            if a.herb ~= b.herb then return a.herb &lt; b.herb end
+            return a.mineral &lt; b.mineral
+        end)
+    end
+    return rows
+end
+
+--- Which half of a pair the report says to buy, or nil for "either".
+local function buyName(row)
+    if M.config.cureBuy == "herbs" then
+        return row.herb
+    elseif M.config.cureBuy == "minerals" then
+        return row.mineral
+    end
+    return nil
+end
+
+--- One pair, padded into columns. Atomic for the same reason shortRow is.
+local function cureRow(row, short)
+    local line = string.format("  %-10s %4d + %-11s %4d = %4d",
+        row.herb, row.herbHave, row.mineral, row.mineralHave, row.have)
+    if short then
+        local name = buyName(row)
+        return "&lt;ansi_light_yellow&gt;" .. line .. "&lt;reset&gt;  &lt;ansi_light_green&gt;buy "
+            .. row.buy .. (name and (" " .. name) or "") .. "&lt;reset&gt;"
+    end
+    return line
+end
+
+local function printCures(rows, threshold)
+    info(string.format("Cures below %d, herb + mineral (HELP 13.7.1):", threshold))
+    for _, row in ipairs(rows) do
+        plain(cureRow(row, true))
+    end
+    if M.config.cureBuy ~= "herbs" and M.config.cureBuy ~= "minerals" then
+        plain("  either half will do; `restock cures herbs|minerals` names one.")
+    end
+end
+
+--- The alias's way into M.cures: the two forms that report wait for a fresh
+--- List, and the forms that change a setting do not.
+function M.curesFresh(argument)
+    local arg = given(argument)
+    if arg == nil or arg:lower() == "all" then
+        return M.fresh(function() return M.cures(argument) end)
+    end
+    return M.cures(argument)
 end
 
 --- Headings that have a target of their own, in the listing's order.
@@ -514,32 +810,106 @@ local function shortRow(row)
         row.name, row.have, row.target, row.buy)
 end
 
+--- `restock cures [n|all|herbs|minerals|either]`. One alias and one function,
+--- because Mudlet fires every alias that matches: four aliases on the same
+--- prefix would need regexes that exclude each other, and this does not.
+function M.cures(argument)
+    local arg = given(argument)
+    arg = arg and arg:lower()
+    local number = arg and tonumber(arg)
+    if number then
+        if number &lt; 0 then
+            warn("a threshold below zero is not a thing to want.")
+            return false
+        end
+        M.config.cureLow = number
+        M.save()
+        if number == 0 then
+            info("cure pairs are no longer watched.")
+        else
+            info(string.format("a cure with under %d herb + mineral is now short.",
+                number))
+        end
+        return true
+    end
+    if arg == "herbs" or arg == "herb" or arg == "minerals" or arg == "mineral"
+        or arg == "either" then
+        M.config.cureBuy = (arg == "herb" and "herbs")
+            or (arg == "mineral" and "minerals") or arg
+        M.save()
+        info("the cure report now says to buy " .. M.config.cureBuy .. ".")
+        return true
+    end
+    if arg and arg ~= "all" then
+        warn("usage: restock cures [&lt;n&gt;|all|herbs|minerals|either]")
+        return false
+    end
+    if not haveStock() then
+        return false
+    end
+    local low = M.config.cureLow or 0
+    if arg == "all" then
+        local rows = M.cureShortfall()
+        info("Every cure pair, herb + mineral (HELP 13.7.1):")
+        for _, row in ipairs(rows) do
+            local short = low &gt; 0 and row.have + (M.config.slack or 0) &lt; low
+            if short then
+                row.buy = low - row.have
+            end
+            plain(cureRow(row, short))
+        end
+        return true
+    end
+    if low &lt;= 0 then
+        warn("no cure threshold set, so there is nothing to be short of.")
+        info("`restock cures 500` watches every herb and mineral pair; "
+            .. "`restock cures all` prints them regardless.")
+        return false
+    end
+    local rows = M.cureShortfall(low)
+    if #rows == 0 then
+        info(string.format("&lt;ansi_light_green&gt;Every cure has at least %d, "
+            .. "herb and mineral together.&lt;reset&gt;", low))
+        return true
+    end
+    printCures(rows, low)
+    return true
+end
+
 function M.report()
     if not haveStock() then
         return false
     end
-    local heads = watched()
-    if #heads == 0 and count(M.targets) == 0 then
+    local low = M.config.cureLow or 0
+    if count(M.targets) == 0 and low &lt;= 0 then
         warn("no targets set, so there is nothing to be short of.")
         info("`restock target herbs 500` sets one for a whole heading; "
             .. "`restock target bloodroot 800` sets one for a single item.")
+        info("`restock cures 500` watches each herb and the mineral that "
+            .. "cures the same thing, together.")
         info("`restock all` prints what is in the rift regardless.")
         return false
     end
     local rows = M.shortfall()
-    if #rows == 0 then
+    local cures = low &gt; 0 and M.cureShortfall(low) or {}
+    if #rows == 0 and #cures == 0 then
         info("&lt;ansi_light_green&gt;Everything with a target is stocked.&lt;reset&gt;")
         return true
     end
-    info("Below target:")
-    local current
-    for _, row in ipairs(rows) do
-        local category = M.CATEGORY[row.name] or "Unsorted"
-        if category ~= current then
-            current = category
-            plain("&lt;ansi_white&gt;" .. category .. "&lt;reset&gt;")
+    if #rows &gt; 0 then
+        info("Below target:")
+        local current
+        for _, row in ipairs(rows) do
+            local category = M.CATEGORY[row.name] or "Unsorted"
+            if category ~= current then
+                current = category
+                plain("&lt;ansi_white&gt;" .. category .. "&lt;reset&gt;")
+            end
+            plain(shortRow(row))
         end
-        plain(shortRow(row))
+    end
+    if #cures &gt; 0 then
+        printCures(cures, low)
     end
     return true
 end
@@ -568,8 +938,9 @@ function M.reportCategory(argument)
     end
     if cap then
         header = header .. "  cap " .. cap
-    elseif head == "Minerals" then
-        header = header .. "  cap unstated by 7.14"
+        if M.CAP_NOTE[head] then
+            header = header .. " (" .. M.CAP_NOTE[head] .. ")"
+        end
     end
     info(header)
     for _, row in ipairs(rows) do
@@ -628,7 +999,7 @@ function M.setTarget(what, amount)
         warn("a target below zero is not a thing to want.")
         return false
     end
-    local key = heading(what) or what:lower()
+    local key = heading(what) or M.listingName(what)
     -- A heading you typed is always a heading. An item name is taken as given
     -- even when M.CATEGORY has never seen it: the table is a lower bound, and
     -- refusing an unknown name would make it impossible to stock something the
@@ -637,6 +1008,20 @@ function M.setTarget(what, amount)
     if cap and amount &gt; cap then
         warn(string.format("%s caps at %d in the rift (HELP 7.14); "
             .. "keeping your target at %d anyway.", key, cap, amount))
+    end
+    -- Since 0.2.0 an item target on something absent from the frames reads as
+    -- none held, so a misspelt one would call for the whole amount for ever.
+    -- A name no listing has filed and the rift is not holding is said out
+    -- loud: it may be real (M.CATEGORY is a lower bound), or a typo.
+    if not heading(what) and not M.CATEGORY[key] and M.rift[key] == nil
+        and not M.GMCP_ABSENT[key] then
+        warn(key .. " is in no RIFT listing on file and not in the rift now, "
+            .. "so it reports as none held. If that is a typo, `restock forget "
+            .. key .. "`.")
+    end
+    if M.GMCP_ABSENT[key] then
+        warn(key .. " is in RIFT listings but never sent over GMCP, so the "
+            .. "report cannot see it. Keeping the target; check it with RIFT.")
     end
     M.targets[key] = amount
     M.save()
@@ -651,7 +1036,7 @@ function M.forget(what)
         warn("usage: restock forget &lt;heading|item&gt;")
         return false
     end
-    local key = heading(what) or what:lower()
+    local key = heading(what) or M.listingName(what)
     if M.targets[key] == nil then
         warn("no target set for " .. key .. ".")
         return false
@@ -727,6 +1112,9 @@ function M.diag()
     plain("  items held:  " .. count(M.rift))
     plain("  targets:     " .. count(M.targets)
         .. "   slack " .. tostring(M.config.slack))
+    plain("  cures:       " .. ((M.config.cureLow or 0) &gt; 0
+        and ("short below " .. M.config.cureLow) or "off")
+        .. "   buy " .. tostring(M.config.cureBuy))
     plain("  saved to:    " .. tostring(M.file))
     plain("  file at load: " .. S.loaded
         .. " (" .. S.loadedCount .. " targets)")
@@ -735,19 +1123,36 @@ function M.diag()
         plain("  &lt;ansi_light_red&gt;NOT being saved&lt;reset&gt;: the unreadable file "
             .. "could not be moved aside (" .. S.moveFailed .. ")")
     end
-    plain("  Minerals cap: "
-        .. (M.CAP.Minerals and tostring(M.CAP.Minerals)
-            or "&lt;ansi_light_magenta&gt;unstated by HELP 7.14&lt;reset&gt;"))
     local _, unsorted = M.grouped()
     if #unsorted &gt; 0 then
         plain("  &lt;ansi_light_magenta&gt;not in M.CATEGORY:&lt;reset&gt;")
         for _, row in ipairs(unsorted) do
             plain(string.format("    %-20s %5d", row.name, row.amount))
         end
-        plain("  Add these from a RIFT listing that shows their heading, "
-            .. "not from memory.")
+        plain("  Set these beside a RIFT listing, not from memory. GMCP may "
+            .. "spell a name differently (blueink is \"blue ink\"): the "
+            .. "amount says which row it is. Then M.GMCP_NAMES or M.CATEGORY.")
     else
         plain("  every held item has a heading.")
+    end
+    for name in pairs(M.GMCP_PREDICTED) do
+        local seen = S.gmcpSeen and S.gmcpSeen[name]
+        plain(string.format("  GMCP name %s -&gt; %s: %s", name, M.GMCP_NAMES[name],
+            seen and "&lt;ansi_light_green&gt;seen this session&lt;reset&gt;"
+                or "predicted from HELP 18.5, not seen yet"))
+    end
+    local absent, arrived = {}, {}
+    for name in pairs(M.GMCP_ABSENT) do
+        table.insert(M.rift[name] and arrived or absent, name)
+    end
+    table.sort(absent)
+    table.sort(arrived)
+    if #absent &gt; 0 then
+        plain("  listed by RIFT, never sent over GMCP: " .. table.concat(absent, ", "))
+    end
+    if #arrived &gt; 0 then
+        plain("  &lt;ansi_light_magenta&gt;now sent over GMCP after all:&lt;reset&gt; "
+            .. table.concat(arrived, ", ") .. " -- M.GMCP_ABSENT is out of date")
     end
     return true
 end
@@ -789,6 +1194,10 @@ end
 
 function M.stop()
     teardown()
+    if S.pendingTimer and type(killTimer) == "function" then
+        pcall(killTimer, S.pendingTimer)
+    end
+    S.pending, S.pendingTimer = nil, nil
     return true
 end
 
@@ -820,12 +1229,13 @@ info("AchaeaRestock " .. M.VERSION
     .. " loaded -- type `restock help` for commands")
 
 -- Generated by build.py from its ALIASES table. Do not edit here.
-restock.BUILD = "ea541358"
+restock.BUILD = "de6a7b9a"
 restock.COMMANDS = {
     { usage = "restock", help = "what is below target, worst shortfall first" },
     { usage = "restock help", help = "this command list" },
     { usage = "restock all", help = "everything in the rift, grouped the way RIFT groups it" },
     { usage = "restock &lt;heading&gt;", help = "one heading: what you hold, and what is short" },
+    { usage = "restock cures [n|all|herbs|minerals]", help = "herb + mineral pairs that cure the same thing; n sets the threshold" },
     { usage = "restock target", help = "every target you have set" },
     { usage = "restock target &lt;heading|item&gt; &lt;n&gt;", help = "hold n of it; setting a target is what opts it into the report" },
     { usage = "restock forget &lt;heading|item&gt;", help = "drop a target again" },
@@ -846,7 +1256,7 @@ restock.COMMANDS = {
             <regex></regex>
             <Alias isActive="yes" isFolder="no">
                 <name>report</name>
-                <script>restock.report()</script>
+                <script>restock.fresh(restock.report)</script>
                 <command></command>
                 <packageName>AchaeaRestock</packageName>
                 <regex>^restock$</regex>
@@ -860,17 +1270,24 @@ restock.COMMANDS = {
             </Alias>
             <Alias isActive="yes" isFolder="no">
                 <name>all</name>
-                <script>restock.listing()</script>
+                <script>restock.fresh(restock.listing)</script>
                 <command></command>
                 <packageName>AchaeaRestock</packageName>
                 <regex>^restock\s+all$</regex>
             </Alias>
             <Alias isActive="yes" isFolder="no">
                 <name>heading</name>
-                <script>restock.reportCategory(matches[2])</script>
+                <script>local heading = matches[2] restock.fresh(function() restock.reportCategory(heading) end)</script>
                 <command></command>
                 <packageName>AchaeaRestock</packageName>
-                <regex>^restock\s+(herbs|minerals|elixirs|salves|inks|reagent|ingredients|commodities|shipcomm)$</regex>
+                <regex>^restock\s+(herbs|minerals|elixirs|salves|inks|reagents?|ingredients|commodities|shipcomm|misc)$</regex>
+            </Alias>
+            <Alias isActive="yes" isFolder="no">
+                <name>cures</name>
+                <script>restock.curesFresh(matches[2])</script>
+                <command></command>
+                <packageName>AchaeaRestock</packageName>
+                <regex>^restock\s+cures(?:\s+(\S+))?$</regex>
             </Alias>
             <Alias isActive="yes" isFolder="no">
                 <name>targets</name>

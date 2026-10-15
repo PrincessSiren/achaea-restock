@@ -25,6 +25,16 @@ restock target health 1500
 restock
 ```
 
+Or watch cures rather than items. Every mineral does exactly what one herb
+does (`HELP 13.7.1`), and server-side curing falls back to the other when one
+runs out, so this counts each pair together and names the herb to buy:
+
+```
+restock cures 500
+restock cures herbs
+restock
+```
+
 A release is one pinned version: it is tagged `v<version>`, the `.mpackage`
 attached to it is built from that tag, and `restock help` prints the same
 version back. The version alone cannot tell you whether Mudlet is running what
@@ -43,13 +53,17 @@ older install.
 | `restock target` | Every target you have set |
 | `restock target <heading\|item> <n>` | Hold n of it — this is what opts it in |
 | `restock forget <heading\|item>` | Drop a target again |
+| `restock cures [n]` | Herb + mineral pairs under n together; n sets it, 0 turns it off |
+| `restock cures all` | Every pair, stocked or not |
+| `restock cures herbs\|minerals\|either` | Which half the cure report says to buy |
 | `restock slack [n]` | How far below target still counts as stocked |
 | `restock refresh` | Ask the game for the whole rift again |
 | `restock diag` | Build stamp, frames seen, and any held item with no heading |
 | `restock help` | This list |
 
-The headings are the game's own, from a `RIFT` listing: Herbs, Minerals,
-Elixirs, Salves, Inks, Reagent, Ingredients, Commodities, Shipcomm.
+The headings are the game's own, from `RIFT` listings: Herbs, Minerals,
+Elixirs, Salves, Inks, Reagent (or Reagents), Ingredients, Commodities,
+Shipcomm, Misc.
 
 ## Two things it is honest about
 
@@ -59,11 +73,19 @@ captured `RIFT` listing — which holds what one character happened to be
 carrying. Anything outside that lands under `Unsorted`, where `restock diag`
 names it, rather than being guessed into a heading.
 
-**It does not know what a mineral caps at.** Capacities come from `HELP 7.14`,
-which caps "each type of herb, commodity, reagent, or crystal" and never
-mentions minerals, though its own contents paragraph lists them separately from
-crystals. So that cap is missing rather than assumed, and the test suite fails
-if anybody fills it in without a capture to point at.
+**One cap is a reading, not a quotation.** Capacities come from `HELP 7.14`,
+which caps "each type of herb, commodity, reagent, or crystal" at 2500 and
+never says *mineral*. Minerals take that 2500 on the reading that the scroll's
+crystals are what `RIFT` lists as minerals, and the cap is printed with a note
+saying so.
+
+**GMCP does not always use the listing's names.** It sends `blueink` for
+"blue ink" and `myrrh` for "myrrh gum". The package maps the ones it has seen
+back to the listing's names, so what you type and what it prints both match
+`RIFT`. Two listed items, `silver bar` and `shipwood`, never arrive over GMCP
+at all, so the report leaves them out rather than calling them empty, and
+`restock diag` names them. And buying straight into the rift sends no update
+at all, so every report asks the game for the whole rift before it answers.
 
 Why it is built this way is in [docs/](docs/). To send a patch, see
 [CONTRIBUTING.md](CONTRIBUTING.md).
