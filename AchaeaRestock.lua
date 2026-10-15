@@ -590,10 +590,19 @@ function M.shortfall(only)
     return rows
 end
 
---- Has this mineral ever been seen in a RIFT listing? If not, its name in
---- M.CURES is the scroll's and the rift may call it something else.
+--- Has this mineral ever been seen in a RIFT listing? That is what files it
+--- under a heading, and what `restock diag` reports on.
 function M.mineralSeen(name)
     return M.CATEGORY[name] == "Minerals"
+end
+
+--- Is the name M.CURES uses for this mineral one the game actually uses? A
+--- listing says so, and so does GMCP sending it under that very name -- which
+--- is the stronger of the two here, since GMCP's name is the one counted.
+--- Stannum was the first: bought on 15th October 2026, it arrived as
+--- `stannum`, the scroll's name lowercased, before any listing showed it.
+function M.mineralKnown(name)
+    return M.mineralSeen(name) or M.rift[name] ~= nil
 end
 
 --- Every pair in M.CURES with what you hold of each half. With a threshold,
@@ -642,7 +651,7 @@ end
 
 --- One pair, padded into columns. Atomic for the same reason shortRow is.
 local function cureRow(row, short)
-    local mineral = row.mineral .. (M.mineralSeen(row.mineral) and "" or "?")
+    local mineral = row.mineral .. (M.mineralKnown(row.mineral) and "" or "?")
     local line = string.format("  %-10s %4d + %-12s %4d = %4d",
         row.herb, row.herbHave, mineral, row.mineralHave, row.have)
     if short then
@@ -656,8 +665,8 @@ end
 --- The footnote any cure listing with an unseen mineral in it needs.
 local function cureFootnote(rows)
     for _, row in ipairs(rows) do
-        if not M.mineralSeen(row.mineral) then
-            plain("  ? never in a RIFT listing yet, so the rift's name for it "
+        if not M.mineralKnown(row.mineral) then
+            plain("  ? never sent by the game yet, so this name for it "
                 .. "is a guess.")
             return
         end

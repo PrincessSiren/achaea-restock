@@ -77,11 +77,18 @@ harness holds it to that. GMCP does not always use those names: it sends
 `myrrh` for myrrh gum, and `M.GMCP_NAMES` maps it back before the pair is
 counted.
 
-**Twelve of the minerals have never appeared in a listing.** Nobody here has held
-any stannum, arsenic, cuprum, magnesium, gypsum, dolomite, antimony, plumbum,
+**Twelve of the minerals had never appeared in a listing** when the pairs were
+written. Nobody here had held any stannum, arsenic, cuprum, magnesium, gypsum, dolomite, antimony, plumbum,
 calamine, argentum, quicksilver or azurite, so the name used for each is the
 scroll's, lowercased. Every mineral that *has* been listed so far matches its
 scroll name like that, but that is no proof for the others. The report puts a
 `?` after them, and `restock diag` lists them. If you hold some and the report
-still says 0, the rift uses a different name, and `restock diag` will show it
+still says 0, the game uses a different name, and `restock diag` will show it
 as an item with no heading.
+
+**The `?` drops as soon as GMCP sends the name.** What the pair counts is the
+GMCP name, so the game sending exactly that name settles the question, even
+before a listing has filed it under a heading. Stannum was the first: 500
+bought on 15th October 2026 arrived as `stannum`. `restock diag` still lists
+it as an item with no heading until a `RIFT` listing shows it under Minerals,
+which is a separate question.

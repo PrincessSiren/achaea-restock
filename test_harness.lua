@@ -181,6 +181,44 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- a cure mineral confirmed by GMCP before any listing
+-- ---------------------------------------------------------------------------
+
+do
+    -- 15th October 2026: 500 stannum bought, and `restock diag` named it as
+    -- an item with no heading -- GMCP sends it as `stannum`, the name M.CURES
+    -- had guessed. The "?" is about the name being counted, so GMCP sending
+    -- that name settles it; filing it under Minerals still waits on a listing.
+    gmcp.IRE.Rift.List = {
+        { name = "ash", amount = 318 },
+        { name = "stannum", amount = 500 },
+        { name = "bayberry", amount = 398 },
+    }
+    raise("gmcp.IRE.Rift.List")
+    ok(M.mineralKnown("stannum"), "stannum is known once GMCP sends it")
+    ok(not M.mineralSeen("stannum"), "...though no listing has filed it")
+    ok(not M.mineralKnown("arsenic"), "arsenic, never sent, is still a guess")
+    ok(M.mineralKnown("cinnabar"), "a listed mineral is known without being held")
+    local _, unsorted = M.grouped()
+    eq(#unsorted, 1, "stannum is still unsorted until a listing shows its heading")
+
+    M.config.cureBuy = "either"
+    for _, row in ipairs(M.cureShortfall()) do
+        if row.herb == "ash" then
+            eq(row.have, 818, "ash 318 + stannum 500")
+        end
+    end
+    M.config.cureLow = 900
+    clearEcho()
+    M.cures("")
+    local text = echoedText()
+    ok(text:find("stannum ", 1, true) and not text:find("stannum?", 1, true),
+        "stannum prints without a ?")
+    ok(text:find("arsenic?", 1, true), "arsenic still prints with one")
+    M.config.cureLow = 0
+end
+
+-- ---------------------------------------------------------------------------
 -- HELP 7.14's capacity table
 -- ---------------------------------------------------------------------------
 
