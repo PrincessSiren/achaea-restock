@@ -562,16 +562,28 @@ do
         ["myrrh gum"] = 684, ["purple ink"] = 34, ["red ink"] = 26,
         silverore = 34, ["yellow ink"] = 10,
     }
-    local n = 0
+    local n, predicted = 0, 0
     for gmcpName, listed in pairs(M.GMCP_NAMES) do
-        n = n + 1
         ok(M.CATEGORY[listed], "a GMCP name maps onto a listed name: " .. gmcpName)
         eq(M.CATEGORY[gmcpName], nil,
             "a GMCP name is not itself a listed name: " .. gmcpName)
-        eq(LISTED[listed], DIAG[gmcpName],
-            "the diag and the listing agree on the amount: " .. gmcpName)
+        if M.GMCP_PREDICTED[gmcpName] then
+            predicted = predicted + 1
+        else
+            n = n + 1
+            eq(LISTED[listed], DIAG[gmcpName],
+                "the diag and the listing agree on the amount: " .. gmcpName)
+        end
     end
-    eq(n, 9, "nine GMCP names, all from one diag")
+    eq(n, 9, "nine observed GMCP names, all from one diag")
+    -- One predicted row, from HELP 18.5's short name for irid moss. A second
+    -- needs a scroll to come from, and the comment above M.GMCP_NAMES says
+    -- which one; this count is what makes adding it a deliberate act.
+    eq(predicted, 1, "one predicted GMCP name")
+    eq(M.GMCP_NAMES.moss, "irid", "18.5: Moss is some irid moss")
+    for name in pairs(M.GMCP_PREDICTED) do
+        ok(M.GMCP_NAMES[name], "a predicted name is a GMCP_NAMES row: " .. name)
+    end
 
     local list = { { name = "bisemutum", amount = 564 } }
     for name, amount in pairs(DIAG) do
@@ -593,6 +605,22 @@ do
             eq(row.have, 1248, "myrrh gum 684 + bisemutum 564")
         end
     end
+
+    -- The predicted row: irid arriving as `moss` lands on irid, counts in
+    -- its pair, and diag says it has now been seen.
+    clearEcho()
+    M.diag()
+    ok(echoedText():find("predicted from HELP 18.5, not seen yet", 1, true),
+        "diag says moss -> irid is not seen yet")
+    gmcp.IRE.Rift.Change = { name = "moss", amount = 373 }
+    raise("gmcp.IRE.Rift.Change")
+    eq(M.rift.irid, 373, "moss arrives as irid")
+    eq(M.rift.moss, nil, "...and not as moss")
+    clearEcho()
+    M.diag()
+    ok(echoedText():find("seen this session", 1, true), "...and diag says so")
+    M.state.gmcpSeen = nil
+    M.rift.irid = nil
 
     -- A Change uses the same names.
     gmcp.IRE.Rift.Change = { name = "myrrh", amount = 700 }
@@ -706,17 +734,17 @@ do
     -- vanish and not be guessed into a heading.
     gmcp.IRE.Rift.List = {
         { name = "ash", amount = 404 },
-        { name = "moss", amount = 12 },
+        { name = "kuzu", amount = 12 },
     }
     raise("gmcp.IRE.Rift.List")
     local groups, unsorted = M.grouped()
     eq(#unsorted, 1, "an unknown name lands in Unsorted")
-    eq(unsorted[1].name, "moss", "...under its own name")
+    eq(unsorted[1].name, "kuzu", "...under its own name")
     eq(#groups.Herbs, 1, "...and is not filed under a heading")
 
     clearEcho()
     M.diag()
-    ok(echoedText():find("moss"), "diag names what has no heading")
+    ok(echoedText():find("kuzu"), "diag names what has no heading")
 end
 
 -- ---------------------------------------------------------------------------
@@ -738,8 +766,8 @@ do
     -- A name M.CATEGORY has never seen is still allowed: the table is a lower
     -- bound, and refusing would make it impossible to stock something the one
     -- capture did not happen to contain.
-    ok(M.setTarget("moss", "50"), "an unknown item may still have a target")
-    eq(M.targets.moss, 50, "...and it is kept")
+    ok(M.setTarget("kuzu", "50"), "an unknown item may still have a target")
+    eq(M.targets.kuzu, 50, "...and it is kept")
 
     -- Over the cap is a warning, not a refusal. The game is the authority on
     -- what it will hold; this only knows what one scroll said.

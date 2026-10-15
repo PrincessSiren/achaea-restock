@@ -26,7 +26,10 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   the amounts it printed, held against the listing's amounts under the names
   `M.GMCP_NAMES` gives. Each arrives under the listed name and takes that
   name's heading and cap. GMCP's `myrrh` counts toward its cure pair, and a
-  target typed with either spelling lands on the same key.
+  target typed with either spelling lands on the same key. The one predicted
+  row, `moss → irid` from `HELP 18.5`, is counted separately so that a second
+  one cannot slip in. When `moss` arrives it lands on irid, and `diag` reports
+  it seen.
 - **Reports ask first.** With a stub timer, a report sends
   `IRE.Rift.Request`, waits, and runs against the `List` that answers. It runs
   once, cancels its timeout, and runs anyway, saying so, if nothing answers.

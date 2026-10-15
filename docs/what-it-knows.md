@@ -102,8 +102,16 @@ name:
 
 The inks just lose a space, but the metals do not follow any rule.
 GMCP's `silver` is the 34 of `silverore`, not the 2466 of `silver bar`. So the
-table is a list of observed pairs and nothing more, and it is not derived by
-rule.
+table is a list of observed pairs, not derived by rule, with one exception.
+
+**GMCP appears to send each item's short name.** `HELP 18.5` and `18.5.1` list
+the short names of every harvestable herb and Transmutation mineral, and every
+herb and mineral seen over GMCP matches its short name, `myrrh` among them.
+The inks and metals have no short-name scroll on file. The pattern predicts
+one row nobody has seen yet: 18.5 gives irid moss the short name `Moss`, while
+the listing prints `irid`. So `moss → irid` is in the table, marked in
+`M.GMCP_PREDICTED`, and `restock diag` says whether it has turned up. If GMCP
+sends `irid` instead, the row never fires, so having it costs nothing.
 
 `absorb()` translates as each frame lands. From there on, everything uses the
 name `RIFT` prints: headings, caps, the cure pairs, and the targets you type,

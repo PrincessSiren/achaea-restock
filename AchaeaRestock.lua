@@ -245,6 +245,20 @@ M.CAP_NOTE = {
 -- around: GMCP's `goldbar` is RIFT's "gold" and its `silver` is "silverore".
 -- Grown the same way M.CATEGORY is: from a diag line and a listing side by
 -- side, never by guessing what a name probably becomes.
+--
+-- What GMCP sends looks like the item's short name, while RIFT prints
+-- something longer. HELP 18.5 and 18.5.1 list the short names of every
+-- harvestable herb and Transmutation mineral, and every herb and mineral
+-- GMCP has sent matches its short name -- myrrh included, which 18.5 gives
+-- as "Myrrh, a ball of myrrh gum". Inks and metals have no such scroll on
+-- file, so for them the rows below are observation only.
+--
+-- One row is a prediction from that, and is the only one: 18.5 gives irid
+-- moss the short name "Moss", while RIFT prints "irid". Nobody has held irid
+-- since the package went live, so GMCP has not been seen sending either name.
+-- If it sends "moss", this row is what keeps irid from reading as none held
+-- in its pair with potash. If it sends "irid", the row never fires. Either
+-- way, M.GMCP_PREDICTED tells `restock diag` to say which it has seen.
 M.GMCP_NAMES = {
     blueink   = "blue ink",
     goldink   = "gold ink",
@@ -255,6 +269,13 @@ M.GMCP_NAMES = {
     myrrh     = "myrrh gum",
     goldbar   = "gold",
     silver    = "silverore",
+    moss      = "irid",       -- predicted from HELP 18.5; see above
+}
+
+-- Rows of M.GMCP_NAMES that come from a scroll rather than a sighting. A
+-- name here that arrives in a frame is recorded in S.gmcpSeen.
+M.GMCP_PREDICTED = {
+    moss = true,
 }
 
 -- Listed by RIFT and never sent over GMCP under any name. On 15th October
@@ -510,6 +531,10 @@ local function absorb(item)
     local name, amount = item.name, tonumber(item.amount)
     if type(name) ~= "string" or not amount then
         return false
+    end
+    if M.GMCP_PREDICTED[name:lower()] then
+        S.gmcpSeen = S.gmcpSeen or {}
+        S.gmcpSeen[name:lower()] = true
     end
     M.rift[M.listingName(name)] = amount
     return true
@@ -1081,6 +1106,12 @@ function M.diag()
             .. "amount says which row it is. Then M.GMCP_NAMES or M.CATEGORY.")
     else
         plain("  every held item has a heading.")
+    end
+    for name in pairs(M.GMCP_PREDICTED) do
+        local seen = S.gmcpSeen and S.gmcpSeen[name]
+        plain(string.format("  GMCP name %s -> %s: %s", name, M.GMCP_NAMES[name],
+            seen and "<ansi_light_green>seen this session<reset>"
+                or "predicted from HELP 18.5, not seen yet"))
     end
     local absent, arrived = {}, {}
     for name in pairs(M.GMCP_ABSENT) do

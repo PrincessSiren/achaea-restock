@@ -69,7 +69,7 @@ The rift calls four herbs something shorter than 13.7.1 does:
 | --- | --- | --- |
 | `ash` | Prickly Ash | the scroll's own cross-reference, "Ash See Prickly Ash" |
 | `elm` | Slippery Elm | "Elm See Slippery Elm" |
-| `irid` | Irid Moss | "Moss See Irid Moss"; `lumic moss` is a reagent, not this |
+| `irid` | Irid Moss | "Moss See Irid Moss"; `lumic moss` is a reagent, not this. GMCP probably sends `moss`, below |
 | `pear` | Prickly Pear | elimination: it is under Herbs, and no other herb in 13.7.1 has the word |
 
 Every herb in `M.CURES` is one a `RIFT` listing has shown under Herbs, and the
@@ -87,6 +87,11 @@ under its short name, including stannum, which was bought on 15th October
 2026 to test exactly that. So the `?` is gone, and the harness holds `M.CURES`
 to the short-name list both ways.
 
-That is not the same as every name lining up everywhere. GMCP sends `myrrh`
-where the listing prints "myrrh gum", so for herbs, at least, a short name and
-a listed name can differ. The minerals have not, so far.
+That is not the same as every name lining up everywhere. `HELP 18.5 Plants and
+Herbs` gives the herbs' short names too, and two differ from what the listing
+prints: `Myrrh` ("a ball of myrrh gum") where the listing says "myrrh gum",
+and `Moss` ("some irid moss") where it says "irid". GMCP has been seen sending
+`myrrh`, the short name. Irid has not been held since the package went live,
+so `moss → irid` is in `M.GMCP_NAMES` as a prediction, and `restock diag`
+says whether it has been seen. If GMCP sends `irid` after all, the row
+never fires.
