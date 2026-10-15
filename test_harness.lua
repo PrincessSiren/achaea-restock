@@ -46,6 +46,8 @@ local nextHandler = 0
 
 function cecho(text) echoed[#echoed + 1] = text end
 function sendGMCP(what) sent[#sent + 1] = what end
+local typed = {}
+function send(what, echo) typed[#typed + 1] = { what = what, echo = echo } end
 
 function registerAnonymousEventHandler(event, fn)
     nextHandler = nextHandler + 1
@@ -656,11 +658,16 @@ do
 
     gmcp.IRE.Rift.List = { { name = "health", amount = 1000 } }
     raise("gmcp.IRE.Rift.List")
-    sent = {}
+    sent, typed = {}, {}
     local ran, saw = 0, nil
     ok(M.fresh(function() ran = ran + 1; saw = M.rift.health end),
         "a fresh report is accepted")
     eq(sent[1], "IRE.Rift.Request", "...and asks for the whole rift")
+    -- Achaea held a request's answer 10.07s in a quiet room, until the next
+    -- line of room text; something the game answers has to go with it.
+    eq(#typed, 1, "...with one line sent to the game")
+    eq(typed[1].what, "", "...and that line blank")
+    eq(typed[1].echo, false, "...and not echoed")
     eq(ran, 0, "...and waits for it")
 
     -- The purchase, arriving in the List the request asked for.
@@ -700,9 +707,10 @@ do
     -- Setting a threshold changes a setting and does not wait; reading does.
     local realSave = M.save
     M.save = function() return true end
-    sent = {}
+    sent, typed = {}, {}
     M.curesFresh("500")
     eq(#sent, 0, "restock cures 500 does not ask for the rift")
+    eq(#typed, 0, "...and sends no blank line")
     eq(M.config.cureLow, 500, "...and is set at once")
     M.curesFresh("")
     eq(sent[1], "IRE.Rift.Request", "restock cures asks first")

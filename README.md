@@ -5,9 +5,9 @@
 What to buy before you go out.
 
 It reads your rift over GMCP, compares it against targets you set, and prints
-what is short and how much of it to buy. It sends one thing —
-`IRE.Rift.Request` — and triggers on nothing at all, because the rift arrives
-as data rather than as text to parse.
+what is short and how much of it to buy. It sends `IRE.Rift.Request`, with
+a blank line behind it so the game answers straight away, and triggers on
+nothing at all, because the rift arrives as data rather than as text to parse.
 
 **Nothing ships with a target.** How much bloodroot you want is a preference,
 not a fact about the game, so the package cannot invent one for you. Setting a

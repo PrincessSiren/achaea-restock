@@ -52,6 +52,19 @@ held 1000. A `restock refresh` brought the 2000 in. So the reports ask for a
 kept up. That costs one round trip, and a timeout covers a request that goes
 unanswered.
 
+**Achaea holds the answer until it has something else to send.** 0.2.0 sent
+the request on its own, and in a quiet room every report timed out and fell
+back to the frames held. Timed with a one-shot handler on 15th October 2026, a
+request sent with nothing else was answered after 10.07s, in the same batch as
+the next line of room text. Two requests sent back to back were answered 1.20s
+after the second one, followed by a prompt. Neither request was a command, so
+the game sent nothing until something else gave it a reason to. From 0.2.1 a
+blank line goes with every request. The game answers a blank line with a prompt,
+and the `List` comes back with it. Mudlet's `send("")` sends a bare newline at
+both `Mudlet-4.22.0` and `Mudlet-5.0.1` (`Host::send`, "allow sending blank
+commands"), so it costs one extra prompt in the main window. The timeout stays,
+for a request sent while disconnected.
+
 ## What is still not verified
 
 Two specific things nobody here has confirmed:

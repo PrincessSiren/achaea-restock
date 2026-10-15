@@ -20,8 +20,9 @@
 -- was typed in game before it was chosen -- "I'm sorry, I don't know what
 -- "restock" does." -- so the front of that command line is free.
 --
--- The package sends one thing, `IRE.Rift.Request` over GMCP, and triggers on
--- nothing. There is no output to parse, because the contents arrive as data.
+-- The package sends `IRE.Rift.Request` over GMCP, with a blank line behind it
+-- so the game answers (see M.refresh), and triggers on nothing. There is no
+-- output to parse, because the contents arrive as data.
 --
 -- Three things are worth knowing before reading further.
 --
@@ -65,7 +66,7 @@
 restock = restock or {}
 local M = restock
 
-M.VERSION = "0.2.0"
+M.VERSION = "0.2.1"
 
 -- Both filled in by build.py, which appends them to the shipped copy of
 -- this file. Loaded from source they stay empty and "source", which is
@@ -588,11 +589,24 @@ end
 
 --- Ask for the whole rift. Whether Achaea sends a List unasked at login is not
 --- established here, so start() asks rather than waiting to find out.
+---
+--- The request goes with a blank line, because Achaea holds the answer until
+--- it next has something to send. On 15th October 2026 a request typed in a
+--- quiet room was answered after 10.07s, landing with the next line of room
+--- text, and two requests sent back to back were answered 1.20s after the
+--- second, with a prompt. So without something else to answer, a request can
+--- wait as long as the room stays quiet, and every report fell back to stale
+--- frames. A blank line is a command the game answers with a prompt, so the
+--- List comes with it. send("") sends a bare newline at both Mudlet tags
+--- (Host::send, "allow sending blank commands"); disconnected, it is dropped.
 function M.refresh()
     if type(sendGMCP) ~= "function" then
         return false
     end
     sendGMCP("IRE.Rift.Request")
+    if type(send) == "function" then
+        send("", false)
+    end
     S.requested = true
     return true
 end

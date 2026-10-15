@@ -36,7 +36,7 @@ shopping list, not a rift browser, and a stranger reading a package listing
 sees the name before the description. `AchaeaRestocker` was considered and
 dropped for the opposite reason: the `-er` names *you*, the person doing the
 restocking, and promises a tool that does the buying. This one sends a single
-GMCP request and nothing else.
+GMCP request, and a blank line so that the game answers it.
 
 If it ever grows to send `BUY` lines at a shop, renaming it then is a change
 that reads as the package having earned the name. Starting there and never
