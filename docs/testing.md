@@ -18,9 +18,15 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   two captures printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
   names (`myrrh gum`, `wyrm tongue`, `blue ink`) are checked by name, being the
   easy thing to lose.
-- **The hole in `HELP 7.14`.** `M.CAP.Minerals` must still be `nil`. This is the
-  point of the suite rather than a side effect: see
+- **`HELP 7.14`'s caps**, including minerals at the "crystal" 2500. That row
+  is a reading rather than a quotation, so the harness also fails if
+  `M.CAP_NOTE.Minerals` stops saying so: see
   [what-it-knows.md](what-it-knows.md).
+- **GMCP's names.** The nine names a live `restock diag` could not place, at
+  the amounts it printed, held against the listing's amounts under the names
+  `M.GMCP_NAMES` gives. Each arrives under the listed name and takes that
+  name's heading and cap. GMCP's `myrrh` counts toward its cure pair, and a
+  target typed with either spelling lands on the same key.
 - **Both GMCP shapes.** `amount` as a number and as a string, since nobody here
   has seen which Achaea sends and `IRE.Target` is on record sending `"-1"`.
 - **That a `List` replaces rather than merges**, so an item that stopped being

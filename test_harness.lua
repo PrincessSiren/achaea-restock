@@ -181,21 +181,19 @@ do
 end
 
 -- ---------------------------------------------------------------------------
--- the hole in HELP 7.14, which must stay a hole
+-- HELP 7.14's capacity table
 -- ---------------------------------------------------------------------------
 
 do
     -- 7.14 caps "each type of herb, commodity, reagent, or crystal" and never
-    -- says mineral, while its own contents paragraph lists minerals separately
-    -- from crystals. Either they are the table's crystals or their cap is
-    -- unstated, and one capture cannot tell you which.
-    --
-    -- This assertion is the point of the test, not a side effect of it:
-    -- 2500 is the obvious number to fill in and it may well be right, which is
-    -- exactly why it must not be filled in from here. Close it with a capture
-    -- -- fill the rift past 2500 and read what the game says -- and change
-    -- this test in the same commit.
-    eq(M.CAP.Minerals, nil, "Minerals has no cap: HELP 7.14 does not state one")
+    -- says mineral. This row was held empty through 0.1.x for that reason, and
+    -- is 2500 since 0.2.0 on the owner's reading that the scroll's crystals are
+    -- the minerals. It is a reading, so the note that says so must stay with
+    -- it: a cap printed without it would claim the scroll says something it
+    -- does not.
+    eq(M.CAP.Minerals, 2500, "Minerals takes 7.14's crystal cap")
+    ok(M.CAP_NOTE.Minerals and M.CAP_NOTE.Minerals:find("crystal", 1, true),
+        "...and carries the note that it is read from \"crystal\"")
 
     eq(M.CAP.Herbs, 2500, "herbs cap, 7.14")
     eq(M.CAP.Inks, 750, "inks cap, 7.14")
@@ -210,7 +208,7 @@ do
     eq(M.capOf("frost"), 1000, "another elixir falls back to the fluid cap")
     eq(M.capOf("ash"), 2500, "an item takes its heading's cap")
     eq(M.capOf("Herbs"), 2500, "a heading takes its own cap")
-    eq(M.capOf("ferrum"), nil, "a mineral has no cap to take")
+    eq(M.capOf("ferrum"), 2500, "a mineral takes the crystal cap")
     eq(M.capOf("nonesuch"), nil, "an unknown name has no cap")
 
     -- Where the scroll hedges, the package says so rather than dropping it.
@@ -453,6 +451,71 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- GMCP's names, which are not always the listing's
+-- ---------------------------------------------------------------------------
+
+do
+    -- The nine names `restock diag` could not place in a live profile on 15th
+    -- October 2026, at the amounts it printed. The RIFT listing taken minutes
+    -- before had each amount under the name M.GMCP_NAMES gives.
+    local DIAG = {
+        blueink = 58, goldbar = 7, goldink = 67, greenink = 32, myrrh = 684,
+        purpleink = 34, redink = 26, silver = 34, yellowink = 10,
+    }
+    local LISTED = {
+        ["blue ink"] = 58, gold = 7, ["gold ink"] = 67, ["green ink"] = 32,
+        ["myrrh gum"] = 684, ["purple ink"] = 34, ["red ink"] = 26,
+        silverore = 34, ["yellow ink"] = 10,
+    }
+    local n = 0
+    for gmcpName, listed in pairs(M.GMCP_NAMES) do
+        n = n + 1
+        ok(M.CATEGORY[listed], "a GMCP name maps onto a listed name: " .. gmcpName)
+        eq(M.CATEGORY[gmcpName], nil,
+            "a GMCP name is not itself a listed name: " .. gmcpName)
+        eq(LISTED[listed], DIAG[gmcpName],
+            "the diag and the listing agree on the amount: " .. gmcpName)
+    end
+    eq(n, 9, "nine GMCP names, all from one diag")
+
+    local list = { { name = "bisemutum", amount = 564 } }
+    for name, amount in pairs(DIAG) do
+        list[#list + 1] = { name = name, amount = amount }
+    end
+    gmcp.IRE.Rift.List = list
+    raise("gmcp.IRE.Rift.List")
+    eq(M.rift["blue ink"], 58, "blueink arrives as blue ink")
+    eq(M.rift.blueink, nil, "...and not under its GMCP name")
+    eq(M.rift.silverore, 34, "GMCP's silver is RIFT's silverore")
+    eq(M.rift.gold, 7, "GMCP's goldbar is RIFT's gold")
+    local _, unsorted = M.grouped()
+    eq(#unsorted, 0, "nothing from that diag is unsorted any more")
+    eq(M.capOf("blue ink"), 750, "and the inks take the ink cap")
+
+    -- The pair that was reading wrong: myrrh gum is GMCP's myrrh.
+    for _, row in ipairs(M.cureShortfall()) do
+        if row.mineral == "bisemutum" then
+            eq(row.have, 1248, "myrrh gum 684 + bisemutum 564")
+        end
+    end
+
+    -- A Change uses the same names.
+    gmcp.IRE.Rift.Change = { name = "myrrh", amount = 700 }
+    raise("gmcp.IRE.Rift.Change")
+    eq(M.rift["myrrh gum"], 700, "a Change is translated too")
+
+    -- A target typed with either spelling lands on the listed name.
+    local realSave = M.save
+    M.save = function() return true end
+    M.targets = {}
+    ok(M.setTarget("myrrh", "800"), "a target by GMCP name")
+    eq(M.targets["myrrh gum"], 800, "...is kept under the listed name")
+    ok(M.forget("myrrh"), "...and forgotten by it")
+    M.targets = {}
+    M.save = realSave
+end
+
+-- ---------------------------------------------------------------------------
 -- a name the table has never seen
 -- ---------------------------------------------------------------------------
 
@@ -473,8 +536,6 @@ do
     clearEcho()
     M.diag()
     ok(echoedText():find("moss"), "diag names what has no heading")
-    ok(echoedText():find("unstated by HELP 7.14"),
-        "diag says the minerals cap is a hole")
 end
 
 -- ---------------------------------------------------------------------------

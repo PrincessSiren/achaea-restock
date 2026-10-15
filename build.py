@@ -254,8 +254,8 @@ restock
 `restock help` is the full command list.
 
 Capacities come from HELP 7.14, so `restock` knows what the rift will not hold
-more of -- with one hole, recorded rather than guessed: 7.14 never states a cap
-for minerals.
+more of. Minerals take the scroll's "crystal" cap of 2500, which is a reading
+rather than a quotation, and the cap is printed with a note saying so.
 
 Why it is built this way, and the captured game output the tables are read off,
 are in the docs: {DOCS_URL}

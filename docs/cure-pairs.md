@@ -73,7 +73,9 @@ The rift calls four herbs something shorter than 13.7.1 does:
 | `pear` | Prickly Pear | elimination: it is under Herbs, and no other herb in 13.7.1 has the word |
 
 Every herb in `M.CURES` is one a `RIFT` listing has shown under Herbs, and the
-harness holds it to that.
+harness holds it to that. GMCP does not always use those names: it sends
+`myrrh` for myrrh gum, and `M.GMCP_NAMES` maps it back before the pair is
+counted.
 
 **Twelve of the minerals have never appeared in a listing.** Nobody here has held
 any stannum, arsenic, cuprum, magnesium, gypsum, dolomite, antimony, plumbum,

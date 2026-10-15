@@ -40,11 +40,16 @@
 -- same rule as the Occultist kit's DEFENCE_OFF and the Explorer's skip list.
 --
 -- M.CAP is HELP 7.14's capacity table, which is the game stating a ceiling --
--- so "how much can I even hold" needs no number anybody invented. Note the
--- hole in it: the scroll's own contents paragraph lists minerals and its
--- capacity table never mentions them, so M.CAP.Minerals is nil on purpose and
--- the harness fails if it stops being nil. Ferrum sitting at exactly 1000 in
--- the capture is a number below a ceiling and nothing more.
+-- so "how much can I even hold" needs no number anybody invented. One row of
+-- it is a reading rather than a quotation: the table caps "crystal" at 2500
+-- and never says mineral, and M.CAP.Minerals takes that 2500 on the owner's
+-- reading that the scroll's crystals are what RIFT heads Minerals. See M.CAP.
+--
+-- GMCP and the listing do not always agree on a name, either. GMCP says
+-- `blueink` and `myrrh` where RIFT prints "blue ink" and "myrrh gum", so
+-- M.GMCP_NAMES turns the one into the other as each frame lands, and
+-- everything past absorb() -- headings, cure pairs, targets you type -- uses
+-- the name RIFT prints.
 --
 -- Nothing ships with a target. A target is a preference rather than a game
 -- fact -- nobody carries 2500 ash -- so the package cannot invent one for you,
@@ -198,13 +203,18 @@ M.CURES = {
 
 -- HELP 7.14's capacity table, by the heading it applies to.
 --
--- Minerals is absent and must stay absent. 7.14 caps "each type of herb,
--- commodity, reagent, or crystal" and never says mineral, while its own
--- "What Goes In The Rift?" paragraph lists minerals separately from crystals.
--- Either they are the table's crystals or their cap is unstated, and one
--- capture cannot tell you which. The harness asserts this hole is still here.
+-- Minerals is the one row the scroll does not name. 7.14 caps "each type of
+-- herb, commodity, reagent, or crystal" at 2500 and never says mineral, though
+-- its own "What Goes In The Rift?" paragraph lists minerals and crystals
+-- separately. Through 0.1.x the row was left empty for that reason. It is
+-- 2500 since 0.2.0 on the owner's reading that 7.14's crystals are the
+-- minerals, the same edible stones RIFT lists under that heading -- a reading
+-- of the scroll, not a capture of the game refusing the 2501st, and M.CAP_NOTE
+-- says so wherever the cap is printed. Potash at 2349 in a listing of 15th
+-- October 2026 is the highest mineral on file, and agrees with it.
 M.CAP = {
     Herbs       = 2500,
+    Minerals    = 2500,
     Elixirs     = 1000,
     Salves      = 1000,
     Inks        =  750,
@@ -223,9 +233,36 @@ M.ITEM_CAP = {
 
 -- Where 7.14 hedges. Printed beside a cap rather than silently dropped.
 M.CAP_NOTE = {
-    Elixirs = "7.14 says \"most\" curatives and fluids",
-    Salves  = "7.14 says \"most\" curatives and fluids",
+    Elixirs  = "7.14 says \"most\" curatives and fluids",
+    Salves   = "7.14 says \"most\" curatives and fluids",
+    Minerals = "7.14 says \"crystal\", read as minerals",
 }
+
+-- GMCP name -> the name RIFT prints, where the two differ. Each row was read
+-- off one session on 15th October 2026: `restock diag` listed the GMCP names
+-- it could not place, a RIFT listing taken minutes before printed the same
+-- amounts under these names, and no other row in the listing had that amount.
+-- Inks lose their space, myrrh gum loses "gum", and the two metals swap
+-- around: GMCP's `goldbar` is RIFT's "gold" and its `silver` is "silverore".
+-- Grown the same way M.CATEGORY is: from a diag line and a listing side by
+-- side, never by guessing what a name probably becomes.
+M.GMCP_NAMES = {
+    blueink   = "blue ink",
+    goldink   = "gold ink",
+    greenink  = "green ink",
+    purpleink = "purple ink",
+    redink    = "red ink",
+    yellowink = "yellow ink",
+    myrrh     = "myrrh gum",
+    goldbar   = "gold",
+    silver    = "silverore",
+}
+
+--- The name RIFT prints for something, from either spelling of it.
+function M.listingName(name)
+    name = name:lower()
+    return M.GMCP_NAMES[name] or name
+end
 
 -- ---------------------------------------------------------------------------
 -- state the game feeds
@@ -462,7 +499,7 @@ local function absorb(item)
     if type(name) ~= "string" or not amount then
         return false
     end
-    M.rift[name] = amount
+    M.rift[M.listingName(name)] = amount
     return true
 end
 
@@ -795,8 +832,9 @@ function M.reportCategory(argument)
     end
     if cap then
         header = header .. "  cap " .. cap
-    elseif head == "Minerals" then
-        header = header .. "  cap unstated by 7.14"
+        if M.CAP_NOTE[head] then
+            header = header .. " (" .. M.CAP_NOTE[head] .. ")"
+        end
     end
     info(header)
     for _, row in ipairs(rows) do
@@ -855,7 +893,7 @@ function M.setTarget(what, amount)
         warn("a target below zero is not a thing to want.")
         return false
     end
-    local key = heading(what) or what:lower()
+    local key = heading(what) or M.listingName(what)
     -- A heading you typed is always a heading. An item name is taken as given
     -- even when M.CATEGORY has never seen it: the table is a lower bound, and
     -- refusing an unknown name would make it impossible to stock something the
@@ -878,7 +916,7 @@ function M.forget(what)
         warn("usage: restock forget <heading|item>")
         return false
     end
-    local key = heading(what) or what:lower()
+    local key = heading(what) or M.listingName(what)
     if M.targets[key] == nil then
         warn("no target set for " .. key .. ".")
         return false
@@ -975,17 +1013,15 @@ function M.diag()
         plain("  cure minerals no RIFT listing has shown yet: "
             .. table.concat(unseen, ", "))
     end
-    plain("  Minerals cap: "
-        .. (M.CAP.Minerals and tostring(M.CAP.Minerals)
-            or "<ansi_light_magenta>unstated by HELP 7.14<reset>"))
     local _, unsorted = M.grouped()
     if #unsorted > 0 then
         plain("  <ansi_light_magenta>not in M.CATEGORY:<reset>")
         for _, row in ipairs(unsorted) do
             plain(string.format("    %-20s %5d", row.name, row.amount))
         end
-        plain("  Add these from a RIFT listing that shows their heading, "
-            .. "not from memory.")
+        plain("  Set these beside a RIFT listing, not from memory. GMCP may "
+            .. "spell a name differently (blueink is \"blue ink\"): the "
+            .. "amount says which row it is. Then M.GMCP_NAMES or M.CATEGORY.")
     else
         plain("  every held item has a heading.")
     end

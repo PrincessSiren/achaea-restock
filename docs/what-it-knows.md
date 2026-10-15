@@ -66,27 +66,51 @@ Where the scroll hedges, `M.CAP_NOTE` carries the hedge rather than dropping
 it — "most curatives, venoms, and other fluids" is not the same as *all* of
 them.
 
-## The hole: minerals
-
-**`M.CAP.Minerals` is `nil` on purpose, and the harness fails if it stops
-being `nil`.**
+## Minerals: a reading, not a quotation
 
 The capacity table caps "each type of herb, commodity, reagent, or crystal" and
 never says *mineral*. The scroll's own "What Goes In The Rift?" paragraph, four
 paragraphs earlier, lists "Herbs, minerals, inks, crystals, commodities,
-shipcommodities and common fluids" — minerals and crystals as separate things.
-So either minerals *are* the capacity table's crystals, at 2500, or their cap
-is simply unstated. One scroll cannot tell you which.
+shipcommodities and common fluids", naming minerals and crystals separately.
 
-2500 is the obvious guess and may well be right, which is precisely why it is
-not in the table. A cap that is wrong by being too high is a `restock` that
-cheerfully tells you to buy ore the rift will refuse.
+Through 0.1.x `M.CAP.Minerals` was `nil` for that reason, and the harness
+failed if it stopped being `nil`. **Since 0.2.0 it is 2500**, on the owner's
+reading that 7.14's "crystal" means the minerals, the edible stones `RIFT` lists
+under that heading. That is a reading of the scroll by someone who plays the
+game, not a capture of the game refusing the 2501st, and the package says so:
+`M.CAP_NOTE.Minerals` is printed beside the cap, and the harness fails if the
+note goes.
 
-The captures narrow it without closing it: ferrum sat at exactly 1000 in the
-first, and potash at 2351 in the second. So if minerals have a cap it is above
-2350, which rules out the fluids' 1000 and is consistent with 2500, and says
-nothing more.
+The listings agree as far as they reach. Ferrum sat at exactly 1000 in the
+first, and potash at 2351 and then 2349 in the second, so whatever the cap is,
+it is above 2350. A capture of the game refusing a deposit would settle it for
+good.
 
-**To close it**, put minerals into the rift until the game refuses, and capture
-what it says. Then change `M.CAP` and the assertion in `test_harness.lua` in
-the same commit.
+## `M.GMCP_NAMES`: the same item, two names
+
+GMCP and the `RIFT` listing do not always agree on what an item is called. The
+first live run turned up nine items that `restock diag` could not place, each
+held at exactly the amount a listing taken minutes earlier printed under another
+name:
+
+| GMCP | `RIFT` |
+| --- | --- |
+| `blueink`, `goldink`, `greenink`, `purpleink`, `redink`, `yellowink` | `blue ink` … `yellow ink` |
+| `myrrh` | `myrrh gum` |
+| `goldbar` | `gold` |
+| `silver` | `silverore` |
+
+The inks just lose a space, but the metals do not follow any rule.
+GMCP's `silver` is the 34 of `silverore`, not the 2466 of `silver bar`. So the
+table is a list of observed pairs and nothing more, and it is not derived by
+rule.
+
+`absorb()` translates as each frame lands. From there on, everything uses the
+name `RIFT` prints: headings, caps, the cure pairs, and the targets you type,
+which accept either spelling. Before this, the inks went uncapped and
+`myrrh gum` read as zero in its cure pair.
+
+**The listing held 72 items and GMCP 70.** So two items in the listing reached
+GMCP under no name at all, or under one that was taken for something else.
+Which two is not known yet. A `restock all` beside a `RIFT` listing would show
+it.

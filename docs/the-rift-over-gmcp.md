@@ -31,13 +31,19 @@ merge would leave it sitting at its last known value forever.
 
 `Change` patches one item in place.
 
-## What is not verified
+## What a live profile showed
 
-**This shape is read off Orion, not off a capture.** Orion's `Rift` script
-registers handlers for both events and reads exactly `item.name` and
-`item.amount`, which is the best evidence available without a live profile — but
-it is another package's code, not the game's output, and a claim here should
-say so.
+The shape was first read off Orion's `Rift` script, which reads exactly
+`item.name` and `item.amount`. **It held in a live profile on 15th October
+2026.** `restock diag` reported four `List` frames and a hundred `Change` frames
+absorbed, and 70 items with an amount each.
+
+The same run showed that **GMCP's names are not always the listing's**:
+`blueink` for "blue ink", `myrrh` for "myrrh gum", and `goldbar` and `silver`
+for "gold" and "silverore". `M.GMCP_NAMES` maps them back, and
+[what-it-knows.md](what-it-knows.md) has the table.
+
+## What is still not verified
 
 Two specific things nobody here has confirmed:
 

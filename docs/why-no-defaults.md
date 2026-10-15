@@ -45,8 +45,8 @@ sorted, and available without a round trip.
 
 ## The same rule, elsewhere
 
-This is the house rule rather than a one-off. `M.CAP` has no minerals entry,
-`M.CATEGORY` holds only names a capture showed, and neither gets extended from
-memory. A target list nobody typed would be the same mistake in a place where
+This is the house rule rather than a one-off. `M.CATEGORY` and
+`M.GMCP_NAMES` hold only names a capture showed, the one cap read rather than
+quoted says so wherever it is printed, and nothing gets extended from memory. A target list nobody typed would be the same mistake in a place where
 it is harder to notice, because a wrong threshold does not look wrong — it
 looks like advice.

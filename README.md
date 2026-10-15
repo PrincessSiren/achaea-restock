@@ -73,11 +73,16 @@ captured `RIFT` listing — which holds what one character happened to be
 carrying. Anything outside that lands under `Unsorted`, where `restock diag`
 names it, rather than being guessed into a heading.
 
-**It does not know what a mineral caps at.** Capacities come from `HELP 7.14`,
-which caps "each type of herb, commodity, reagent, or crystal" and never
-mentions minerals, though its own contents paragraph lists them separately from
-crystals. So that cap is missing rather than assumed, and the test suite fails
-if anybody fills it in without a capture to point at.
+**One cap is a reading, not a quotation.** Capacities come from `HELP 7.14`,
+which caps "each type of herb, commodity, reagent, or crystal" at 2500 and
+never says *mineral*. Minerals take that 2500 on the reading that the scroll's
+crystals are what `RIFT` lists as minerals, and the cap is printed with a note
+saying so.
+
+**GMCP does not always use the listing's names.** It sends `blueink` for
+"blue ink" and `myrrh` for "myrrh gum". The package maps the ones it has seen
+back to the listing's names, so what you type and what it prints both match
+`RIFT`.
 
 Why it is built this way is in [docs/](docs/). To send a patch, see
 [CONTRIBUTING.md](CONTRIBUTING.md).

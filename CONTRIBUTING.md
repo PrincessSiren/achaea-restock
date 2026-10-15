@@ -40,17 +40,18 @@ about Achaea comes from what Achaea printed**, not from what anyone remembers.
 - Cite the scroll or the command — `HELP 7.14`, `RIFT`, `AB <skill>`. Naming
   the command matters more than quoting it, because the command still works
   after the quote goes stale.
-- **Do not fill a table in from memory.** There are two live cases here and the
-  test suite enforces both. `M.CAP` has no entry for minerals, because `HELP
-  7.14` caps "each type of herb, commodity, reagent, or crystal" and never says
-  mineral — 2500 is the obvious number and it may well be right, which is
-  exactly why it may not be typed in from here. And `M.CATEGORY` is a
-  transcription of one `RIFT` listing, so it holds what one character was
-  carrying; a name it has never seen belongs under `Unsorted`, not under
-  whichever heading sounds right.
-- To close either gap, bring the capture. Fill the rift past 2500 minerals and
-  read what the game says; or paste a `RIFT` listing showing the heading a new
-  name sits under. Change the test in the same commit as the table.
+- **Do not fill a table in from memory.** `M.CATEGORY` is a transcription of
+  `RIFT` listings, so it holds what one character was carrying; a name it has
+  never seen belongs under `Unsorted`, not under whichever heading sounds
+  right. `M.GMCP_NAMES` is the same: each row is a GMCP name and a listed name
+  seen at the same amount in the same session, never a guess at what a name
+  probably becomes.
+- To close a gap, bring the capture: a `RIFT` listing showing the heading a new
+  name sits under, and a `restock diag` beside it for a name GMCP spells
+  differently. Change the test in the same commit as the table.
+- `M.CAP.Minerals` is the one row read rather than quoted (`HELP 7.14` says
+  "crystal"), and it says so wherever it is printed. A capture of the game
+  refusing a mineral deposit would replace the reading.
 - If you cannot cite it, say so in the PR. An open question recorded honestly is
   worth more than a rule that reads well.
 
