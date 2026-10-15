@@ -77,18 +77,16 @@ harness holds it to that. GMCP does not always use those names: it sends
 `myrrh` for myrrh gum, and `M.GMCP_NAMES` maps it back before the pair is
 counted.
 
-**Twelve of the minerals had never appeared in a listing** when the pairs were
-written. Nobody here had held any stannum, arsenic, cuprum, magnesium, gypsum, dolomite, antimony, plumbum,
-calamine, argentum, quicksilver or azurite, so the name used for each is the
-scroll's, lowercased. Every mineral that *has* been listed so far matches its
-scroll name like that, but that is no proof for the others. The report puts a
-`?` after them, and `restock diag` lists them. If you hold some and the report
-still says 0, the game uses a different name, and `restock diag` will show it
-as an item with no heading.
+**The minerals' names are the game's own short names.** `HELP 18.5.1 Minerals`
+lists every mineral as a short name and a description, `Stannum` for "a stannum
+flake", and its twenty-one are exactly the twenty-one here. When the pairs were
+first written, twelve of them had never been seen in the rift, so their names
+were the scroll's, lowercased, and the report marked them with a `?`. 18.5.1
+took the guesswork out. Each of the ten minerals held so far reached GMCP
+under its short name, including stannum, which was bought on 15th October
+2026 to test exactly that. So the `?` is gone, and the harness holds `M.CURES`
+to the short-name list both ways.
 
-**The `?` drops as soon as GMCP sends the name.** What the pair counts is the
-GMCP name, so the game sending exactly that name settles the question, even
-before a listing has filed it under a heading. Stannum was the first: 500
-bought on 15th October 2026 arrived as `stannum`, and the next `RIFT` listing
-filed it under Minerals, which is the separate question of its heading. That
-leaves eleven.
+That is not the same as every name lining up everywhere. GMCP sends `myrrh`
+where the listing prints "myrrh gum", so for herbs, at least, a short name and
+a listed name can differ. The minerals have not, so far.

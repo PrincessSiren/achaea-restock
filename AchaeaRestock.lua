@@ -172,10 +172,9 @@ M.CATEGORY = {
 -- make those three certain. "pear" is Prickly Pear by elimination: it is
 -- under Herbs, and no other herb in 13.7.1 has the word in it.
 --
--- A mineral not filed under Minerals in M.CATEGORY has never appeared in a
--- RIFT listing, so its rift name here is the scroll's, lowercased, and is
--- unconfirmed. The report marks those with a "?" rather than leaving them
--- out: holding none of a mineral is exactly the case the pair is for.
+-- Every mineral here is the short name HELP 18.5.1 gives it, and the set is
+-- exactly that scroll's twenty-one. Each of the ten held so far reached GMCP
+-- under that short name, stannum included, which was bought to test it.
 -- Burdock is in the rift and not in 13.7.1 at all, so it pairs with nothing.
 M.CURES = {
     { "ash",       "stannum" },     -- sanity afflictions
@@ -664,21 +663,6 @@ function M.shortfall(only)
     return rows
 end
 
---- Has this mineral ever been seen in a RIFT listing? That is what files it
---- under a heading, and what `restock diag` reports on.
-function M.mineralSeen(name)
-    return M.CATEGORY[name] == "Minerals"
-end
-
---- Is the name M.CURES uses for this mineral one the game actually uses? A
---- listing says so, and so does GMCP sending it under that very name -- which
---- is the stronger of the two here, since GMCP's name is the one counted.
---- Stannum was the first: bought on 15th October 2026, it arrived as
---- `stannum`, the scroll's name lowercased, before any listing showed it.
-function M.mineralKnown(name)
-    return M.mineralSeen(name) or M.rift[name] ~= nil
-end
-
 --- Every pair in M.CURES with what you hold of each half. With a threshold,
 --- only the pairs short of it, worst first; with none, all of them in the
 --- table's order. Rows are { herb, mineral, herbHave, mineralHave, have, buy }.
@@ -725,26 +709,14 @@ end
 
 --- One pair, padded into columns. Atomic for the same reason shortRow is.
 local function cureRow(row, short)
-    local mineral = row.mineral .. (M.mineralKnown(row.mineral) and "" or "?")
-    local line = string.format("  %-10s %4d + %-12s %4d = %4d",
-        row.herb, row.herbHave, mineral, row.mineralHave, row.have)
+    local line = string.format("  %-10s %4d + %-11s %4d = %4d",
+        row.herb, row.herbHave, row.mineral, row.mineralHave, row.have)
     if short then
         local name = buyName(row)
         return "<ansi_light_yellow>" .. line .. "<reset>  <ansi_light_green>buy "
             .. row.buy .. (name and (" " .. name) or "") .. "<reset>"
     end
     return line
-end
-
---- The footnote any cure listing with an unseen mineral in it needs.
-local function cureFootnote(rows)
-    for _, row in ipairs(rows) do
-        if not M.mineralKnown(row.mineral) then
-            plain("  ? never sent by the game yet, so this name for it "
-                .. "is a guess.")
-            return
-        end
-    end
 end
 
 local function printCures(rows, threshold)
@@ -755,7 +727,6 @@ local function printCures(rows, threshold)
     if M.config.cureBuy ~= "herbs" and M.config.cureBuy ~= "minerals" then
         plain("  either half will do; `restock cures herbs|minerals` names one.")
     end
-    cureFootnote(rows)
 end
 
 --- The alias's way into M.cures: the two forms that report wait for a fresh
@@ -844,7 +815,6 @@ function M.cures(argument)
             end
             plain(cureRow(row, short))
         end
-        cureFootnote(rows)
         return true
     end
     if low <= 0 then
@@ -1099,16 +1069,6 @@ function M.diag()
     if S.moveFailed then
         plain("  <ansi_light_red>NOT being saved<reset>: the unreadable file "
             .. "could not be moved aside (" .. S.moveFailed .. ")")
-    end
-    local unseen = {}
-    for _, pair in ipairs(M.CURES) do
-        if not M.mineralSeen(pair[2]) then
-            table.insert(unseen, pair[2])
-        end
-    end
-    if #unseen > 0 then
-        plain("  cure minerals no RIFT listing has shown yet: "
-            .. table.concat(unseen, ", "))
     end
     local _, unsorted = M.grouped()
     if #unsorted > 0 then

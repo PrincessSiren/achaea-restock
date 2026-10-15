@@ -177,51 +177,49 @@ do
         end
     end
     eq(seen, 10, "ten minerals seen in a listing")
-    ok(M.mineralSeen("cinnabar"), "cinnabar has been seen")
-    ok(M.mineralSeen("stannum"), "stannum has, once bought")
-    ok(not M.mineralSeen("arsenic"), "arsenic has not")
+
+    -- HELP 18.5.1 lists every mineral by a short name, and M.CURES is held
+    -- to that list both ways: each pair's mineral is a short name, and each
+    -- short name is in a pair. These are the scroll's own words, lowercased.
+    local SHORT = {
+        "antimony", "argentum", "arsenic", "aurum", "azurite", "bisemutum",
+        "calamine", "calcite", "cinnabar", "cuprum", "dolomite", "ferrum",
+        "gypsum", "magnesium", "malachite", "plumbum", "potash", "quartz",
+        "quicksilver", "realgar", "stannum",
+    }
+    local short = {}
+    for _, name in ipairs(SHORT) do
+        short[name] = true
+        eq(minerals[name], 1, "18.5.1's short name is in one pair: " .. name)
+    end
+    for name in pairs(minerals) do
+        ok(short[name], "the pair's mineral is an 18.5.1 short name: " .. name)
+    end
 end
 
 -- ---------------------------------------------------------------------------
--- a cure mineral confirmed by GMCP before any listing
+-- stannum, bought to test a short name against GMCP
 -- ---------------------------------------------------------------------------
 
 do
-    -- 15th October 2026: 500 stannum bought, and `restock diag` named it as
-    -- an item with no heading -- GMCP sends it as `stannum`, the name M.CURES
-    -- had guessed. The "?" is about the name being counted, so GMCP sending
-    -- that name settles it; filing it under Minerals still waits on a listing.
+    -- 15th October 2026: 500 stannum bought, and GMCP sent it as `stannum`,
+    -- the short name. It counts toward ash's pair.
     gmcp.IRE.Rift.List = {
         { name = "ash", amount = 318 },
         { name = "stannum", amount = 500 },
-        { name = "bayberry", amount = 398 },
     }
     raise("gmcp.IRE.Rift.List")
-    -- A listing has since filed stannum, so the GMCP route is driven here
-    -- by taking that row out for the length of this block.
-    M.CATEGORY.stannum = nil
-    ok(M.mineralKnown("stannum"), "stannum is known once GMCP sends it")
-    ok(not M.mineralSeen("stannum"), "...though no listing has filed it")
-    ok(not M.mineralKnown("arsenic"), "arsenic, never sent, is still a guess")
-    ok(M.mineralKnown("cinnabar"), "a listed mineral is known without being held")
-    local _, unsorted = M.grouped()
-    eq(#unsorted, 1, "stannum is unsorted until a listing shows its heading")
-
-    M.config.cureBuy = "either"
     for _, row in ipairs(M.cureShortfall()) do
         if row.herb == "ash" then
             eq(row.have, 818, "ash 318 + stannum 500")
         end
     end
     M.config.cureLow = 900
+    M.config.cureBuy = "either"
     clearEcho()
     M.cures("")
-    local text = echoedText()
-    ok(text:find("stannum ", 1, true) and not text:find("stannum?", 1, true),
-        "stannum prints without a ?")
-    ok(text:find("arsenic?", 1, true), "arsenic still prints with one")
+    ok(echoedText():find("stannum", 1, true), "the pair prints with stannum")
     M.config.cureLow = 0
-    M.CATEGORY.stannum = "Minerals"
 end
 
 -- ---------------------------------------------------------------------------
@@ -501,8 +499,7 @@ do
     ok(M.cures(""), "the report runs")
     local text = echoedText()
     ok(text:find("cohosh"), "...naming the worst")
-    ok(text:find("gypsum?", 1, true), "...marking a mineral no listing has shown")
-    ok(not text:find("cinnabar?", 1, true), "...and not one a listing has")
+    ok(not text:find("?", 1, true), "...with no name marked as a guess")
     ok(text:find("either half", 1, true), "...saying either half will do")
     ok(not text:find("buy 251 cohosh", 1, true), "...without picking one")
 

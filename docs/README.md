@@ -7,12 +7,12 @@ that looks arbitrary until you know what it is guarding against.
 - **[The rift over GMCP](the-rift-over-gmcp.md)** — why there is no trigger and
   nothing to parse, what the frames carry, and the one field nobody here has
   actually seen.
-- **[What it knows, and what it does not](what-it-knows.md)** — the two tables,
-  the captures behind them, and the hole in `HELP 7.14` that is deliberately
-  still a hole.
+- **[What it knows, and what it does not](what-it-knows.md)** — the tables, the
+  captures behind them, the one cap in `HELP 7.14` that is a reading rather
+  than a quotation, and what GMCP names differently or never sends.
 - **[Cure pairs](cure-pairs.md)** — why a herb and a mineral are counted
-  together, where the pairing comes from, and the twelve minerals whose rift
-  names are still a guess.
+  together, where the pairing comes from, and where the minerals' names come
+  from.
 - **[Why nothing ships with a target](why-no-defaults.md)** — the difference
   between a fact about the game and a preference, and why the package refuses
   to guess the second one.
