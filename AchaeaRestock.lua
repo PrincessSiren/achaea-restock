@@ -529,6 +529,16 @@ function M.onList()
     end
     S.lists = (S.lists or 0) + 1
     S.listedAt = os.time()
+    -- A report that asked for this List answers now.
+    if S.pending then
+        local report = S.pending
+        S.pending = nil
+        if S.pendingTimer and type(killTimer) == "function" then
+            pcall(killTimer, S.pendingTimer)
+        end
+        S.pendingTimer = nil
+        report()
+    end
     return true
 end
 
@@ -549,6 +559,43 @@ function M.refresh()
     end
     sendGMCP("IRE.Rift.Request")
     S.requested = true
+    return true
+end
+
+-- How long a report waits for the List it asked for before answering from
+-- what it already holds.
+M.FRESH_WAIT = 3
+
+--- Run a report against a List asked for now, rather than the frames held.
+---
+--- Buying into the rift sends no IRE.Rift.Change. On 15th October 2026, 1000
+--- health bought straight into it left the frames at 1000 while RIFT printed
+--- 2000, and only a `restock refresh` brought the 2000 in. So between a
+--- shop and the next List every report was stale, and stale in the one
+--- direction that matters: it still called for what had just been bought.
+--- Asking costs one GMCP round trip. If no List comes back in FRESH_WAIT
+--- seconds the report runs anyway, and says what it is reading from.
+---
+--- Without a timer to wait on -- plain luajit -- it runs at once.
+function M.fresh(report)
+    if type(tempTimer) ~= "function" or not M.refresh() then
+        return report()
+    end
+    if S.pendingTimer and type(killTimer) == "function" then
+        pcall(killTimer, S.pendingTimer)
+    end
+    S.pending = report
+    S.pendingTimer = tempTimer(M.FRESH_WAIT, function()
+        S.pendingTimer = nil
+        if S.pending then
+            local late = S.pending
+            S.pending = nil
+            warn(string.format("no answer to IRE.Rift.Request in %ds, so this "
+                .. "is from the last frames held -- anything bought since is "
+                .. "missing.", M.FRESH_WAIT))
+            late()
+        end
+    end)
     return true
 end
 
@@ -709,6 +756,16 @@ local function printCures(rows, threshold)
         plain("  either half will do; `restock cures herbs|minerals` names one.")
     end
     cureFootnote(rows)
+end
+
+--- The alias's way into M.cures: the two forms that report wait for a fresh
+--- List, and the forms that change a setting do not.
+function M.curesFresh(argument)
+    local arg = given(argument)
+    if arg == nil or arg:lower() == "all" then
+        return M.fresh(function() return M.cures(argument) end)
+    end
+    return M.cures(argument)
 end
 
 --- Headings that have a target of their own, in the listing's order.
@@ -1118,6 +1175,10 @@ end
 
 function M.stop()
     teardown()
+    if S.pendingTimer and type(killTimer) == "function" then
+        pcall(killTimer, S.pendingTimer)
+    end
+    S.pending, S.pendingTimer = nil, nil
     return true
 end
 

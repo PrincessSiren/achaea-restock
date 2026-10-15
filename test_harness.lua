@@ -614,6 +614,92 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- a report asks for a fresh List first
+-- ---------------------------------------------------------------------------
+
+do
+    -- 15th October 2026: 1000 health bought into the rift sent no Change,
+    -- and only `restock refresh` brought the new amount in. So the reports
+    -- ask for a List and answer when it lands.
+    local timers, nextTimer = {}, 0
+    tempTimer = function(seconds, fn)
+        nextTimer = nextTimer + 1
+        timers[nextTimer] = { seconds = seconds, fn = fn }
+        return nextTimer
+    end
+    killTimer = function(id) timers[id] = nil end
+
+    gmcp.IRE.Rift.List = { { name = "health", amount = 1000 } }
+    raise("gmcp.IRE.Rift.List")
+    sent = {}
+    local ran, saw = 0, nil
+    ok(M.fresh(function() ran = ran + 1; saw = M.rift.health end),
+        "a fresh report is accepted")
+    eq(sent[1], "IRE.Rift.Request", "...and asks for the whole rift")
+    eq(ran, 0, "...and waits for it")
+
+    -- The purchase, arriving in the List the request asked for.
+    gmcp.IRE.Rift.List = { { name = "health", amount = 2000 } }
+    raise("gmcp.IRE.Rift.List")
+    eq(ran, 1, "the List that lands runs the report")
+    eq(saw, 2000, "...against the new amounts")
+    eq(next(timers), nil, "...and the timeout is cancelled")
+    raise("gmcp.IRE.Rift.List")
+    eq(ran, 1, "a later List does not run it again")
+
+    -- No answer: the timer fires, and the report runs on what is held.
+    ran = 0
+    clearEcho()
+    M.fresh(function() ran = ran + 1 end)
+    local id, timer = next(timers)
+    eq(timer.seconds, M.FRESH_WAIT, "the wait is FRESH_WAIT")
+    timers[id] = nil
+    timer.fn()
+    eq(ran, 1, "an unanswered request still reports")
+    ok(echoedText():find("no answer to IRE.Rift.Request", 1, true),
+        "...and says it is reading the last frames")
+    raise("gmcp.IRE.Rift.List")
+    eq(ran, 1, "...and the late List does not run it twice")
+
+    -- Asking twice keeps one report waiting, the latest.
+    local first, second = 0, 0
+    M.fresh(function() first = first + 1 end)
+    M.fresh(function() second = second + 1 end)
+    local waiting = 0
+    for _ in pairs(timers) do waiting = waiting + 1 end
+    eq(waiting, 1, "one timer for two asks")
+    raise("gmcp.IRE.Rift.List")
+    eq(first + second, 1, "...and one report")
+    eq(second, 1, "...the latest")
+
+    -- Setting a threshold changes a setting and does not wait; reading does.
+    local realSave = M.save
+    M.save = function() return true end
+    sent = {}
+    M.curesFresh("500")
+    eq(#sent, 0, "restock cures 500 does not ask for the rift")
+    eq(M.config.cureLow, 500, "...and is set at once")
+    M.curesFresh("")
+    eq(sent[1], "IRE.Rift.Request", "restock cures asks first")
+    raise("gmcp.IRE.Rift.List")
+    M.curesFresh("all")
+    eq(sent[2], "IRE.Rift.Request", "restock cures all asks first")
+    raise("gmcp.IRE.Rift.List")
+    M.config.cureLow = 0
+    M.save = realSave
+
+    -- Stopping drops a report still waiting.
+    M.fresh(function() first = first + 100 end)
+    M.stop()
+    eq(next(timers), nil, "stop cancels the wait")
+    raise("gmcp.IRE.Rift.List")
+    ok(first < 100, "...and the report never runs")
+    M.start()
+
+    tempTimer, killTimer = nil, nil
+end
+
+-- ---------------------------------------------------------------------------
 -- a name the table has never seen
 -- ---------------------------------------------------------------------------
 
@@ -867,10 +953,13 @@ do
         local text = xml:read("*a")
         xml:close()
         for _, command in ipairs({
-            "restock%.report%(%)", "restock%.help%(%)", "restock%.listing%(%)",
-            "restock%.reportCategory", "restock%.targetList%(%)",
+            "restock%.fresh%(restock%.report%)", "restock%.help%(%)",
+            "restock%.fresh%(restock%.listing%)",
+            "restock%.fresh%(function%(%) restock%.reportCategory%(heading%) end%)",
+            "restock%.targetList%(%)",
             "restock%.setTarget", "restock%.forget", "restock%.setSlack",
-            "restock%.refresh%(%)", "restock%.diag%(%)", "restock%.cures",
+            "restock%.refresh%(%)", "restock%.diag%(%)",
+            "restock%.curesFresh%(matches%[2%]%)",
         }) do
             ok(text:find(command), "the XML wires up " .. command)
         end

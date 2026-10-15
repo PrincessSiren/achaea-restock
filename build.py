@@ -73,7 +73,7 @@ ALIASES: list[tuple[str, str, str, str, str]] = [
     (
         "report",
         r"^restock$",
-        "restock.report()",
+        "restock.fresh(restock.report)",
         "restock",
         "what is below target, worst shortfall first",
     ),
@@ -87,7 +87,7 @@ ALIASES: list[tuple[str, str, str, str, str]] = [
     (
         "all",
         r"^restock\s+all$",
-        "restock.listing()",
+        "restock.fresh(restock.listing)",
         "restock all",
         "everything in the rift, grouped the way RIFT groups it",
     ),
@@ -95,14 +95,15 @@ ALIASES: list[tuple[str, str, str, str, str]] = [
         "heading",
         r"^restock\s+(herbs|minerals|elixirs|salves|inks|reagents?"
         r"|ingredients|commodities|shipcomm|misc)$",
-        "restock.reportCategory(matches[2])",
+        "local heading = matches[2] "
+        "restock.fresh(function() restock.reportCategory(heading) end)",
         "restock <heading>",
         "one heading: what you hold, and what is short",
     ),
     (
         "cures",
         r"^restock\s+cures(?:\s+(\S+))?$",
-        "restock.cures(matches[2])",
+        "restock.curesFresh(matches[2])",
         "restock cures [n|all|herbs|minerals]",
         "herb + mineral pairs that cure the same thing; n sets the threshold",
     ),

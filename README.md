@@ -84,7 +84,8 @@ saying so.
 back to the listing's names, so what you type and what it prints both match
 `RIFT`. Two listed items, `silver bar` and `shipwood`, never arrive over GMCP
 at all, so the report leaves them out rather than calling them empty, and
-`restock diag` names them.
+`restock diag` names them. And buying straight into the rift sends no update
+at all, so every report asks the game for the whole rift before it answers.
 
 Why it is built this way is in [docs/](docs/). To send a patch, see
 [CONTRIBUTING.md](CONTRIBUTING.md).

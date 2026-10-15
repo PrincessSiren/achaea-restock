@@ -45,11 +45,12 @@ never arrive at all**, `silver bar` and `shipwood`, and `M.GMCP_ABSENT` keeps
 the report from reading them as none held. The details of both are in
 [what-it-knows.md](what-it-knows.md).
 
-**A purchase did not show up in the frames.** 1000 health was bought straight
+**Buying into the rift sends no `Change`.** 1000 health was bought straight
 into the rift, and a listing afterwards printed 2000 while the frames still
-held 1000. If buying sends no `Change`, the report is stale after any shop
-visit until the next `List`. Whether a fresh `List` carries the purchase is the
-open question it leaves.
+held 1000. A `restock refresh` brought the 2000 in. So the reports ask for a
+`List` before answering, rather than trusting the `Change` stream to have
+kept up. That costs one round trip, and a timeout covers a request that goes
+unanswered.
 
 ## What is still not verified
 

@@ -27,6 +27,11 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   `M.GMCP_NAMES` gives. Each arrives under the listed name and takes that
   name's heading and cap. GMCP's `myrrh` counts toward its cure pair, and a
   target typed with either spelling lands on the same key.
+- **Reports ask first.** With a stub timer, a report sends
+  `IRE.Rift.Request`, waits, and runs against the `List` that answers. It runs
+  once, cancels its timeout, and runs anyway, saying so, if nothing answers.
+  Two asks leave one report waiting. `stop` drops it, and setting a threshold
+  does not wait at all.
 - **What GMCP does not send.** An item target on something at zero is reported
   short by the whole target. A heading target is not, since it names no items.
   The two never-sent items are never reported as none held, a target on one

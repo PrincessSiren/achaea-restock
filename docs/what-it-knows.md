@@ -134,14 +134,21 @@ absent from the frames is reported as none held and short by the whole target.
 Through 0.1.x it was silently never reported. A *heading* target cannot do this,
 because nothing says which names a heading would hold.
 
-## Open: a purchase the frames did not carry
+## Buying sends no `Change`
 
 That same October listing printed `health` at 2000, while `restock all` run
-after it, from the frames, still held 1000. The difference is 1000 health
+after it, from the frames, still held 1000. The difference was 1000 health
 bought between two listings, straight into the rift, and the frames never
-heard of it. A `Change` would have set 2000, and one under another name
-would have shown up in `restock diag` as an item with no heading. The `Change`
-counter read 105 on both sides of the listing. So buying into the rift looks
-not to send an `IRE.Rift.Change`.
+heard of it. A `Change` would have set 2000, one under another name would
+have shown up in `restock diag` as an item with no heading, and the `Change`
+counter read 105 on both sides of the listing. **A `restock refresh` then
+brought 2000 in**, so the whole-rift `List` carries a purchase and the
+`Change` stream does not.
+
+So every report that reads the rift (`restock`, `restock all`,
+`restock <heading>`, `restock cures`, `restock cures all`) asks for a `List`
+first and answers when it lands. If none comes back within `M.FRESH_WAIT`
+seconds (3), it answers from what it holds and says so. Commands that only
+change a setting do not wait.
 `restock refresh` asks for a whole new `List`, and what that says is the next
 thing to capture.
