@@ -13,8 +13,8 @@ in-game help cannot drift from what is installed.
 
 There are no <Trigger> elements and no tempTrigger either. The rift arrives
 over GMCP -- Mudlet asks for IRE.Rift in its own opening handshake -- so this
-package never reads a line of game output. The only thing it sends is
-IRE.Rift.Request.
+package never reads a line of game output. All it sends is IRE.Rift.Request,
+and a blank line behind it for a report (see M.refresh).
 
 Note that the heading alias enumerates the ten headings rather than taking
 `^restock\s+(\S+)$`. Mudlet fires every alias that matches rather than the
@@ -226,8 +226,8 @@ DESCRIPTION = f"""# AchaeaRestock
 What to buy before you go out.
 
 Reads your rift over GMCP, compares it against targets you set, and prints what
-is short and how much of it to buy. It sends one thing, IRE.Rift.Request, and
-triggers on nothing.
+is short and how much of it to buy. It sends IRE.Rift.Request, with a blank
+line behind it for a report, and triggers on nothing.
 
 **Nothing ships with a target.** How much bloodroot you want is a preference
 rather than a game fact, so setting one is what opts a heading or an item into
