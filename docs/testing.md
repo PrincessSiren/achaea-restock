@@ -27,6 +27,10 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   `M.GMCP_NAMES` gives. Each arrives under the listed name and takes that
   name's heading and cap. GMCP's `myrrh` counts toward its cure pair, and a
   target typed with either spelling lands on the same key.
+- **What GMCP does not send.** An item target on something at zero is reported
+  short by the whole target. A heading target is not, since it names no items.
+  The two never-sent items are never reported as none held, a target on one
+  warns, and `diag` names them, and says so if one ever arrives.
 - **Both GMCP shapes.** `amount` as a number and as a string, since nobody here
   has seen which Achaea sends and `IRE.Target` is on record sending `"-1"`.
 - **That a `List` replaces rather than merges**, so an item that stopped being

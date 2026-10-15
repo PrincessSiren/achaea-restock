@@ -123,7 +123,7 @@ M.CATEGORY = {
     ["calcite"] = "Minerals", ["cinnabar"] = "Minerals",
     ["ferrum"] = "Minerals", ["malachite"] = "Minerals",
     ["potash"] = "Minerals", ["quartz"] = "Minerals",
-    ["realgar"] = "Minerals",
+    ["realgar"] = "Minerals", ["stannum"] = "Minerals",
     -- Elixirs
     ["frost"] = "Elixirs", ["health"] = "Elixirs", ["immunity"] = "Elixirs",
     ["levitation"] = "Elixirs", ["mana"] = "Elixirs", ["speed"] = "Elixirs",
@@ -256,6 +256,19 @@ M.GMCP_NAMES = {
     myrrh     = "myrrh gum",
     goldbar   = "gold",
     silver    = "silverore",
+}
+
+-- Listed by RIFT and never sent over GMCP under any name. On 15th October
+-- 2026 a `restock all` beside a listing held every row but these two, at a
+-- time when GMCP had sent 71 items against the listing's 73. So the package
+-- cannot see them, and to it they would read as none held: a target on one
+-- would call for the whole amount every time. The report leaves them out and
+-- `restock target` says why. Why these two is not known -- one is a
+-- commodity and one the only ship commodity -- so the list grows from the
+-- same comparison and nothing else.
+M.GMCP_ABSENT = {
+    ["silver bar"] = true,
+    ["shipwood"]   = true,
 }
 
 --- The name RIFT prints for something, from either spelling of it.
@@ -569,7 +582,7 @@ end
 --- Returns rows of { name, have, target, buy }, worst shortfall first.
 function M.shortfall(only)
     local rows = {}
-    for name, amount in pairs(M.rift) do
+    local function consider(name, amount)
         local category = M.CATEGORY[name]
         if not only or category == only or name == only then
             local target = M.targetOf(name)
@@ -581,6 +594,20 @@ function M.shortfall(only)
                     buy    = target - amount,
                 })
             end
+        end
+    end
+    for name, amount in pairs(M.rift) do
+        consider(name, amount)
+    end
+    -- An item at zero is not in the rift's frames at all, so the loop above
+    -- never meets it -- and none held is the shortfall that matters most.
+    -- Through 0.1.x a target on one was silently never reported. A heading
+    -- target cannot be helped this way, since nothing says which names a
+    -- heading would hold, but an item target names its item.
+    for name in pairs(M.targets) do
+        if M.rift[name] == nil and not heading(name)
+            and not M.GMCP_ABSENT[name] then
+            consider(name, 0)
         end
     end
     table.sort(rows, function(a, b)
@@ -912,6 +939,10 @@ function M.setTarget(what, amount)
         warn(string.format("%s caps at %d in the rift (HELP 7.14); "
             .. "keeping your target at %d anyway.", key, cap, amount))
     end
+    if M.GMCP_ABSENT[key] then
+        warn(key .. " is in RIFT listings but never sent over GMCP, so the "
+            .. "report cannot see it. Keeping the target; check it with RIFT.")
+    end
     M.targets[key] = amount
     M.save()
     info(string.format("target for <ansi_light_yellow>%s<reset> is now %d.",
@@ -1033,6 +1064,19 @@ function M.diag()
             .. "amount says which row it is. Then M.GMCP_NAMES or M.CATEGORY.")
     else
         plain("  every held item has a heading.")
+    end
+    local absent, arrived = {}, {}
+    for name in pairs(M.GMCP_ABSENT) do
+        table.insert(M.rift[name] and arrived or absent, name)
+    end
+    table.sort(absent)
+    table.sort(arrived)
+    if #absent > 0 then
+        plain("  listed by RIFT, never sent over GMCP: " .. table.concat(absent, ", "))
+    end
+    if #arrived > 0 then
+        plain("  <ansi_light_magenta>now sent over GMCP after all:<reset> "
+            .. table.concat(arrived, ", ") .. " -- M.GMCP_ABSENT is out of date")
     end
     return true
 end

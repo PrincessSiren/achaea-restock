@@ -82,7 +82,9 @@ saying so.
 **GMCP does not always use the listing's names.** It sends `blueink` for
 "blue ink" and `myrrh` for "myrrh gum". The package maps the ones it has seen
 back to the listing's names, so what you type and what it prints both match
-`RIFT`.
+`RIFT`. Two listed items, `silver bar` and `shipwood`, never arrive over GMCP
+at all, so the report leaves them out rather than calling them empty, and
+`restock diag` names them.
 
 Why it is built this way is in [docs/](docs/). To send a patch, see
 [CONTRIBUTING.md](CONTRIBUTING.md).

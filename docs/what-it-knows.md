@@ -18,7 +18,7 @@ Minerals
 [   85] bisemutum              [  378] calcite                [ 1000] ferrum
 ```
 
-`M.CATEGORY` is a transcription of two such listings — 75 names under ten
+`M.CATEGORY` is a transcription of such listings — 76 names under ten
 headings, captured 18th September and 15th October 2026. Neither is a superset
 of the other: kelp and irid were held the first time and not the second, and
 were simply not listed. That is also the best evidence on file that an item at
@@ -110,7 +110,34 @@ name `RIFT` prints: headings, caps, the cure pairs, and the targets you type,
 which accept either spelling. Before this, the inks went uncapped and
 `myrrh gum` read as zero in its cure pair.
 
-**The listing held 72 items and GMCP 70.** So two items in the listing reached
-GMCP under no name at all, or under one that was taken for something else.
-Which two is not known yet. A `restock all` beside a `RIFT` listing would show
-it.
+## `M.GMCP_ABSENT`: listed, and never sent
+
+The same run had 72 items in the listing and 70 over GMCP. A `restock all`
+taken beside a later listing held every row of it except two: **`silver bar`
+(2466) and `shipwood` (85)**. They are in every October listing and have not
+arrived in any frame under any name. Why those two is not known. One is a
+commodity and one the only ship commodity, and neither fact explains it,
+so the table grows from the same comparison and nothing else.
+
+To the package, an item it never hears about looks exactly like one held at
+zero. So the report leaves these two out rather than calling for the whole
+target every time, `restock target` warns when you set one, and `restock diag`
+names them. If one turns up in a frame after all, diag says the table is out of
+date.
+
+## Items at zero
+
+An item taken to zero drops out of the listing, and out of GMCP too (kelp and
+irid, both captures). So the rift's frames never mention the case that matters
+most to a shopping list: none held. Since 0.2.0 an *item* target on something
+absent from the frames is reported as none held and short by the whole target.
+Through 0.1.x it was silently never reported. A *heading* target cannot do this,
+because nothing says which names a heading would hold.
+
+## Open: a fluid refill the frames did not carry
+
+That same October listing printed `health` at 2000, while `restock all` beside
+it, from the frames, still held 1000. The refill landed between the two
+listings. Either it sent no `IRE.Rift.Change`, or the change was missed.
+`restock refresh` asks for a whole new `List`, and what that says is the next
+thing to capture.

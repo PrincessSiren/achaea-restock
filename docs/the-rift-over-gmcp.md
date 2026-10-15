@@ -40,8 +40,14 @@ absorbed, and 70 items with an amount each.
 
 The same run showed that **GMCP's names are not always the listing's**:
 `blueink` for "blue ink", `myrrh` for "myrrh gum", and `goldbar` and `silver`
-for "gold" and "silverore". `M.GMCP_NAMES` maps them back, and
-[what-it-knows.md](what-it-knows.md) has the table.
+for "gold" and "silverore". `M.GMCP_NAMES` maps them back. **Two listed items
+never arrive at all**, `silver bar` and `shipwood`, and `M.GMCP_ABSENT` keeps
+the report from reading them as none held. The details of both are in
+[what-it-knows.md](what-it-knows.md).
+
+**A health refill did not show up in the frames.** A listing printed 2000 where
+the frames still held 1000. Whether a fluid poured into the rift sends a
+`Change` at all is the open question it leaves.
 
 ## What is still not verified
 

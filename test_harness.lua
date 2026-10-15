@@ -103,8 +103,9 @@ do
         used[category] = (used[category] or 0) + 1
         total = total + 1
     end
-    -- 56 from the September listing, 19 more from the October one.
-    eq(total, 75, "75 names transcribed from two RIFT listings")
+    -- 56 from the September listing, 19 more from October's first, and
+    -- stannum from October's last.
+    eq(total, 76, "76 names transcribed from RIFT listings")
     for _, head in ipairs(M.CATEGORY_ORDER) do
         ok(used[head], "heading has at least one name: " .. head)
         used[head] = nil
@@ -115,7 +116,7 @@ do
     -- is a superset of the other: kelp and irid were held in September and
     -- not in October, which is why the union is what is counted.
     local want = {
-        Herbs = 21, Minerals = 9, Elixirs = 7, Salves = 5, Inks = 6,
+        Herbs = 21, Minerals = 10, Elixirs = 7, Salves = 5, Inks = 6,
         Reagent = 3, Ingredients = 6, Commodities = 16, Shipcomm = 1,
         Misc = 1,
     }
@@ -166,8 +167,8 @@ do
     end
     eq(herbs.burdock, nil, "burdock is not in 13.7.1, so it pairs with nothing")
 
-    -- Every mineral the listings have shown is in a pair. Nine of them; if a
-    -- tenth appears under Minerals and is not a cure, this is where it shows.
+    -- Every mineral the listings have shown is in a pair. Ten of them; if an
+    -- eleventh appears under Minerals and is not a cure, this is where it shows.
     local seen = 0
     for name, category in pairs(M.CATEGORY) do
         if category == "Minerals" then
@@ -175,9 +176,10 @@ do
             ok(minerals[name], "a listed mineral is in a pair: " .. name)
         end
     end
-    eq(seen, 9, "nine minerals seen in a listing")
+    eq(seen, 10, "ten minerals seen in a listing")
     ok(M.mineralSeen("cinnabar"), "cinnabar has been seen")
-    ok(not M.mineralSeen("stannum"), "stannum has not")
+    ok(M.mineralSeen("stannum"), "stannum has, once bought")
+    ok(not M.mineralSeen("arsenic"), "arsenic has not")
 end
 
 -- ---------------------------------------------------------------------------
@@ -195,12 +197,15 @@ do
         { name = "bayberry", amount = 398 },
     }
     raise("gmcp.IRE.Rift.List")
+    -- A listing has since filed stannum, so the GMCP route is driven here
+    -- by taking that row out for the length of this block.
+    M.CATEGORY.stannum = nil
     ok(M.mineralKnown("stannum"), "stannum is known once GMCP sends it")
     ok(not M.mineralSeen("stannum"), "...though no listing has filed it")
     ok(not M.mineralKnown("arsenic"), "arsenic, never sent, is still a guess")
     ok(M.mineralKnown("cinnabar"), "a listed mineral is known without being held")
     local _, unsorted = M.grouped()
-    eq(#unsorted, 1, "stannum is still unsorted until a listing shows its heading")
+    eq(#unsorted, 1, "stannum is unsorted until a listing shows its heading")
 
     M.config.cureBuy = "either"
     for _, row in ipairs(M.cureShortfall()) do
@@ -216,6 +221,61 @@ do
         "stannum prints without a ?")
     ok(text:find("arsenic?", 1, true), "arsenic still prints with one")
     M.config.cureLow = 0
+    M.CATEGORY.stannum = "Minerals"
+end
+
+-- ---------------------------------------------------------------------------
+-- what GMCP does not send: items at zero, and two that never arrive
+-- ---------------------------------------------------------------------------
+
+do
+    gmcp.IRE.Rift.List = {
+        { name = "ash", amount = 318 },
+        { name = "cloth", amount = 2399 },
+    }
+    raise("gmcp.IRE.Rift.List")
+    local realSave = M.save
+    M.save = function() return true end
+    M.targets = {}
+    M.config.slack = 0
+
+    -- Kelp went from 298 to unlisted between two captures. A target on it
+    -- has to report the whole amount, which 0.1.x never did.
+    M.targets.kelp = 300
+    local rows = M.shortfall()
+    eq(#rows, 1, "a target on an item at zero is reported")
+    eq(rows[1].name, "kelp", "...by name")
+    eq(rows[1].have, 0, "...as none held")
+    eq(rows[1].buy, 300, "...short the whole target")
+    eq(#M.shortfall("Herbs"), 1, "...and under its heading")
+    eq(#M.shortfall("Minerals"), 0, "...and not under another")
+
+    -- A heading target names no items, so it cannot reach one at zero.
+    M.targets = { Herbs = 500 }
+    eq(#M.shortfall(), 1, "a heading target sees only what is held")
+
+    -- Silver bar and shipwood are in every October listing and in no frame.
+    -- Reporting them short would call for the whole target while 2466 bars
+    -- sit in the rift.
+    M.targets = {}
+    clearEcho()
+    ok(M.setTarget("silver bar", "2500"), "a target on a never-sent item is kept")
+    ok(echoedText():find("never sent over GMCP", 1, true), "...with a warning")
+    M.targets.shipwood = 100
+    eq(#M.shortfall(), 0, "neither is reported as none held")
+
+    clearEcho()
+    M.diag()
+    ok(echoedText():find("never sent over GMCP: shipwood, silver bar", 1, true),
+        "diag names both")
+    gmcp.IRE.Rift.Change = { name = "shipwood", amount = 85 }
+    raise("gmcp.IRE.Rift.Change")
+    clearEcho()
+    M.diag()
+    ok(echoedText():find("now sent over GMCP after all", 1, true),
+        "diag says when one turns up after all")
+    M.targets = {}
+    M.save = realSave
 end
 
 -- ---------------------------------------------------------------------------

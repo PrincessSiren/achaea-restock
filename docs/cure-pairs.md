@@ -89,6 +89,6 @@ as an item with no heading.
 **The `?` drops as soon as GMCP sends the name.** What the pair counts is the
 GMCP name, so the game sending exactly that name settles the question, even
 before a listing has filed it under a heading. Stannum was the first: 500
-bought on 15th October 2026 arrived as `stannum`. `restock diag` still lists
-it as an item with no heading until a `RIFT` listing shows it under Minerals,
-which is a separate question.
+bought on 15th October 2026 arrived as `stannum`, and the next `RIFT` listing
+filed it under Minerals, which is the separate question of its heading. That
+leaves eleven.
