@@ -52,22 +52,30 @@ held 1000. A `restock refresh` brought the 2000 in. So the reports ask for a
 kept up. That costs one round trip, and a timeout covers a request that goes
 unanswered.
 
-**Achaea holds the answer until it has something else to send.** 0.2.0 sent
-the request on its own, and in a quiet room every report timed out and fell
-back to the frames held. Timed with a one-shot handler on 15th October 2026, a
-request sent with nothing else was answered after 10.07s, in the same batch as
-the next line of room text. Two requests sent back to back were answered 1.20s
-after the second one, followed by a prompt. Neither request was a command, so
-the game sent nothing until something else gave it a reason to. From 0.2.1 a
-blank line goes with every request. The game answers a blank line with a prompt,
-and the `List` comes back with it. Mudlet's `send("")` sends a bare newline at
-both `Mudlet-4.22.0` and `Mudlet-5.0.1` (`Host::send`, "allow sending blank
-commands"), so it costs one extra prompt in the main window. The timeout stays,
-for a request sent while disconnected.
+**In a quiet room the answer waits.** 0.2.0 sent the request on its own, and in
+a quiet room every report timed out and fell back to the frames held. Timed
+with a one-shot handler on 15th October 2026, a request sent with nothing else
+was answered after 10.07s, in the same batch as the next line of room text.
+Two requests sent back to back were answered 1.20s after the second one,
+followed by a prompt. The likeliest reading is that Achaea holds the answer
+until something else gives it a reason to send, though two timings are not a
+measurement of that.
+
+From 0.2.1 a report sends a blank line after its request, and on the first live
+run in a quiet room the `List` came back at once, with one extra prompt in the
+main window. Mudlet's `send("")` sends a bare newline at both `Mudlet-4.22.0`
+and `Mudlet-5.0.1` (`Host::send`, "allow sending blank commands"), and drops it
+while disconnected. The request `M.start()` makes at load goes without one,
+since the profile may be sitting at the login prompt. The timeout stays.
 
 ## What is still not verified
 
-Two specific things nobody here has confirmed:
+Three specific things nobody here has confirmed:
+
+- **What else a blank line does in Achaea.** It was seen to print a prompt,
+  once. Whether it breaks hiding, meditation or anything else that ends on a
+  command has not been tried. Other Mudlet packages also see it go by as a
+  sent command (`sysDataSendRequest` with `""`).
 
 - **Whether `amount` is a number or a string.** Orion calls `tonumber()` on it,
   which is either caution or knowledge and reads the same either way. It

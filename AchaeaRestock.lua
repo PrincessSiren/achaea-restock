@@ -587,27 +587,45 @@ function M.onChange()
     return false
 end
 
---- Ask for the whole rift. Whether Achaea sends a List unasked at login is not
---- established here, so start() asks rather than waiting to find out.
----
---- The request goes with a blank line, because Achaea holds the answer until
---- it next has something to send. On 15th October 2026 a request typed in a
---- quiet room was answered after 10.07s, landing with the next line of room
---- text, and two requests sent back to back were answered 1.20s after the
---- second, with a prompt. So without something else to answer, a request can
---- wait as long as the room stays quiet, and every report fell back to stale
---- frames. A blank line is a command the game answers with a prompt, so the
---- List comes with it. send("") sends a bare newline at both Mudlet tags
---- (Host::send, "allow sending blank commands"); disconnected, it is dropped.
-function M.refresh()
+--- Ask for the whole rift over GMCP, and nothing else. start() uses this:
+--- whether Achaea sends a List unasked at login is not established here, so
+--- it asks rather than waiting to find out, and at load it may be sitting at
+--- the login prompt, where a blank line is not obviously harmless.
+function M.request()
     if type(sendGMCP) ~= "function" then
         return false
     end
     sendGMCP("IRE.Rift.Request")
+    S.requested = true
+    return true
+end
+
+--- Ask for the whole rift and get the answer sent now: the request, then a
+--- blank line. Everything the player asks for goes through here.
+---
+--- On 15th October 2026 a request sent on its own in a quiet room was
+--- answered after 10.07s, arriving with the next line of room text. Two
+--- requests sent back to back were answered 1.20s after the second, with a
+--- prompt. Achaea seems to hold the answer until something else gives it a
+--- reason to send, so in a quiet room every report fell back to stale frames.
+--- That is a reading of two timings, not a measured mechanism. A blank line is
+--- a command the game answers with a prompt, and with it the List came back
+--- at once on the first live run.
+---
+--- send("") sends a bare newline at Mudlet-4.22.0 and -5.0.1 (Host::send,
+--- "allow sending blank commands"). Disconnected, cTelnet::socketOutRaw
+--- drops it on !mpSocket->isValid() at both tags. sysDataSendRequest is still
+--- raised with "", so other packages see a blank command go by. Under the
+--- default echo settings nothing is printed but the prompt. With command echo
+--- set to Always, and the IRE driver bugfix off or forced LF after the prompt
+--- on, an empty command line is printed as well.
+function M.refresh()
+    if not M.request() then
+        return false
+    end
     if type(send) == "function" then
         send("", false)
     end
-    S.requested = true
     return true
 end
 
@@ -1194,7 +1212,7 @@ function M.start()
     -- Mudlet keeps the table either way -- so read it rather than waiting.
     M.onList()
     if count(M.rift) == 0 then
-        M.refresh()
+        M.request()
     end
     return true
 end

@@ -47,7 +47,9 @@ local nextHandler = 0
 function cecho(text) echoed[#echoed + 1] = text end
 function sendGMCP(what) sent[#sent + 1] = what end
 local typed = {}
-function send(what, echo) typed[#typed + 1] = { what = what, echo = echo } end
+function send(what, echo)
+    typed[#typed + 1] = { what = what, echo = echo, after = #sent }
+end
 
 function registerAnonymousEventHandler(event, fn)
     nextHandler = nextHandler + 1
@@ -668,6 +670,7 @@ do
     eq(#typed, 1, "...with one line sent to the game")
     eq(typed[1].what, "", "...and that line blank")
     eq(typed[1].echo, false, "...and not echoed")
+    eq(typed[1].after, 1, "...and sent after the request, not before")
     eq(ran, 0, "...and waits for it")
 
     -- The purchase, arriving in the List the request asked for.
@@ -875,11 +878,17 @@ do
 
     -- start() asks for the rift when it has none, since whether Achaea pushes
     -- a List unasked at login is not established.
-    sent = {}
+    sent, typed = {}, {}
     M.rift = {}
     gmcp.IRE.Rift.List = nil
     M.start()
     eq(sent[1], "IRE.Rift.Request", "an empty rift is asked for at start")
+    -- At load the profile may be at the login prompt, or disconnected.
+    eq(#typed, 0, "...with no blank line sent")
+    sent, typed = {}, {}
+    M.refresh()
+    eq(sent[1], "IRE.Rift.Request", "restock refresh asks for the rift")
+    eq(#typed, 1, "...and sends the blank line")
 end
 
 -- ---------------------------------------------------------------------------
