@@ -134,10 +134,14 @@ absent from the frames is reported as none held and short by the whole target.
 Through 0.1.x it was silently never reported. A *heading* target cannot do this,
 because nothing says which names a heading would hold.
 
-## Open: a fluid refill the frames did not carry
+## Open: a purchase the frames did not carry
 
-That same October listing printed `health` at 2000, while `restock all` beside
-it, from the frames, still held 1000. The refill landed between the two
-listings. Either it sent no `IRE.Rift.Change`, or the change was missed.
+That same October listing printed `health` at 2000, while `restock all` run
+after it, from the frames, still held 1000. The difference is 1000 health
+bought between two listings, straight into the rift, and the frames never
+heard of it. A `Change` would have set 2000, and one under another name
+would have shown up in `restock diag` as an item with no heading. The `Change`
+counter read 105 on both sides of the listing. So buying into the rift looks
+not to send an `IRE.Rift.Change`.
 `restock refresh` asks for a whole new `List`, and what that says is the next
 thing to capture.
