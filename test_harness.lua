@@ -3,11 +3,11 @@
 --
 -- What this proves is the logic and the tables. What it cannot prove is that
 -- Achaea sends what the GMCP fixtures below say it sends: those are modelled
--- on Orion's own IRE.Rift handlers (external-addons/orion/Orion.xml in the
--- workshop), which is the best evidence available without a live profile, and
--- not a capture. The amount arriving as a *string* is tested for that reason
--- -- IRE.Target is on record handing numbers over as strings, so neither shape
--- is assumed.
+-- on Orion's own IRE.Rift handlers, not captured. Their { name, amount } shape
+-- held in a live profile on 15th October 2026 (docs/the-rift-over-gmcp.md),
+-- but whether amount is a number or a string is still unknown. The amount
+-- arriving as a *string* is tested for that reason -- IRE.Target is on record
+-- handing numbers over as strings, so neither shape is assumed.
 --
 --   luajit test_harness.lua
 --
