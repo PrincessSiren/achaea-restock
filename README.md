@@ -78,8 +78,11 @@ names it, rather than being guessed into a heading.
 **One cap is a reading, not a quotation.** Capacities come from `HELP 7.14`,
 which caps "each type of herb, commodity, reagent, or crystal" at 2500 and
 never says *mineral*. Minerals take that 2500 on the reading that the scroll's
-crystals are what `RIFT` lists as minerals, and the cap is printed with a note
-saying so.
+crystals are what `RIFT` lists as minerals. `restock <heading>` prints that
+note beside the cap, and the same for elixirs and salves, which 7.14 caps as
+"most" fluids. The `to cap` column in the other reports does not repeat it. An
+item held above its cap is printed as over 7.14's figure, since that would
+mean the scroll's number is wrong for it.
 
 **GMCP does not always use the listing's names.** It sends `blueink` for
 "blue ink" and `myrrh` for "myrrh gum". The package maps the ones it has seen

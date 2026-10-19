@@ -841,7 +841,7 @@ local function capRoom(name, amount)
         return ""
     end
     if amount > cap then
-        return string.format("  <ansi_light_magenta>%d over cap %d<reset>",
+        return string.format("  <ansi_light_magenta>%d over 7.14's %d<reset>",
             amount - cap, cap)
     end
     if amount == cap then

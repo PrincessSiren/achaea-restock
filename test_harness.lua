@@ -863,7 +863,7 @@ do
     ok(M.listing(), "the listing runs")
     text = shown()
     ok(text:find("health%s+1800%s+200 to cap"), "every held row gets its cap")
-    ok(text:find("venom%s+1100%s+100 over cap 1000"),
+    ok(text:find("venom%s+1100%s+100 over 7%.14's 1000"),
         "above the cap is said as such")
     ok(text:find("gleam%s+4\n"), "Misc has no cap, so no cap column")
     clearEcho()
