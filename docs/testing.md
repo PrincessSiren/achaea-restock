@@ -79,10 +79,11 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
 None of it runs inside Mudlet, and none of it talks to Achaea.
 
 The GMCP fixtures are **modelled on Orion's own `IRE.Rift` handlers**, not on a
-capture of Achaea sending those frames. That is the best evidence available
-without a live profile, and it is not the same thing as evidence. A green run
-means the logic and the packaging hold; it does not mean the frames look like
-that.
+capture of Achaea sending those frames. The `{ name, amount }` shape they use
+held in a live profile on 15th October 2026 (see
+[the-rift-over-gmcp.md](the-rift-over-gmcp.md)), but the fixtures themselves are
+still written by hand. A green run means the logic and the packaging hold; it
+does not mean every frame Achaea sends looks like those.
 
 Treat any change to the GMCP handling as unverified until it has run in a real
 profile.

@@ -62,12 +62,12 @@ handlers are reached the way Mudlet would reach them rather than being called
 directly.
 
 A green run means the logic and the packaging hold. It does **not** mean Achaea
-sends what the fixtures say it sends: the `IRE.Rift.List` and `IRE.Rift.Change`
-shapes are modelled on Orion's own handlers, which is the best evidence
-available without a live profile and is not a capture. Whether `amount` arrives
-as a number or a string is genuinely unknown, so both are tested — `IRE.Target`
-is on record reporting `"-1"` as a string, and assuming either way is how that
-bites.
+sends what the fixtures say it sends. The `IRE.Rift.List` and `IRE.Rift.Change`
+shapes were modelled on Orion's own handlers, and that shape held in a live
+profile on 15th October 2026, but the fixtures are still written by hand rather
+than captured. Whether `amount` arrives as a number or a string is still
+unknown, so both are tested — `IRE.Target` is on record reporting `"-1"` as a
+string, and assuming either way is how that bites.
 
 Treat any change to the GMCP handling as unverified until it has run in a real
 profile.

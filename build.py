@@ -319,8 +319,9 @@ def license_text() -> str:
     """The licence this package ships under.
 
     Looked for beside build.py first, then up the tree: a package that has been
-    split out into its own repository carries its own copy, one still in the
-    workshop shares the root one, and the same build.py works either way.
+    split out into its own repository carries its own copy, one still inside a
+    larger repository shares that repository's root one, and the same build.py
+    works either way.
 
     It goes *inside* the .mpackage because Mudlet's package format has no
     licence field -- config.lua has no key for it, whatever else it carries --
