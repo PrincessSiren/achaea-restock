@@ -107,9 +107,9 @@ M.CATEGORY_ORDER = {
     "Reagent", "Ingredients", "Commodities", "Shipcomm", "Misc",
 }
 
--- name -> heading, transcribed from two RIFT listings (18th September and 15th
--- October 2026). A lower bound: it holds what that character was carrying and
--- nothing else.
+-- name -> heading, transcribed from RIFT listings of 18th September, 15th
+-- October and 19th October 2026. A lower bound: it holds what that character
+-- was carrying and nothing else.
 M.CATEGORY = {
     -- Herbs
     ["ash"] = "Herbs", ["bayberry"] = "Herbs", ["bellwort"] = "Herbs",
@@ -154,6 +154,9 @@ M.CATEGORY = {
     ["rope"] = "Commodities", ["silver bar"] = "Commodities",
     ["silverore"] = "Commodities", ["steel"] = "Commodities",
     ["stone"] = "Commodities", ["wood"] = "Commodities",
+    -- First listed 19th October 2026, at 1378; `restock diag` that day showed
+    -- GMCP sending it under the same name at the same amount.
+    ["rawstone"] = "Commodities",
     -- Shipcomm
     ["shipwood"] = "Shipcomm",
     -- Misc (first seen 15th October 2026; HELP 7.14 states no cap for it)

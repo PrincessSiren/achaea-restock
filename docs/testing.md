@@ -14,8 +14,8 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
 
 ## What it covers
 
-- **The transcription.** 75 names, ten headings, the per-heading counts the
-  two captures printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
+- **The transcription.** 77 names, ten headings, the per-heading counts the
+  captures printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
   names (`myrrh gum`, `wyrm tongue`, `blue ink`) are checked by name, being the
   easy thing to lose.
 - **`HELP 7.14`'s caps**, including minerals at the "crystal" 2500. That row

@@ -18,10 +18,12 @@ Minerals
 [   85] bisemutum              [  378] calcite                [ 1000] ferrum
 ```
 
-`M.CATEGORY` is a transcription of such listings — 76 names under ten
-headings, captured 18th September and 15th October 2026. Neither is a superset
-of the other: kelp and irid were held the first time and not the second, and
-were simply not listed. That is also the best evidence on file that an item at
+`M.CATEGORY` is a transcription of such listings — 77 names under ten
+headings, captured 18th September, 15th October and 19th October 2026. None is
+a superset of another: kelp and irid were held the first time and not after,
+and health was held until the third, and each was simply not listed once gone.
+The third added `rawstone` under Commodities, which a `restock diag` the same
+day showed GMCP sending under that name at the listed amount. That is also the best evidence on file that an item at
 zero drops out of the listing, which is why a `List` replaces rather than
 merges. `M.CATEGORY_ORDER` is the game's own
 order, which the reports walk rather than sorting, so the output reads the way

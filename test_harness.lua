@@ -107,21 +107,21 @@ do
         used[category] = (used[category] or 0) + 1
         total = total + 1
     end
-    -- 56 from the September listing, 19 more from October's first, and
-    -- stannum from October's last.
-    eq(total, 76, "76 names transcribed from RIFT listings")
+    -- 56 from the September listing, 19 more from October's first,
+    -- stannum from October's last, and rawstone from the 19th's.
+    eq(total, 77, "77 names transcribed from RIFT listings")
     for _, head in ipairs(M.CATEGORY_ORDER) do
         ok(used[head], "heading has at least one name: " .. head)
         used[head] = nil
     end
     eq(next(used), nil, "no name filed under a heading not in the order list")
 
-    -- The per-heading counts of the two captures together. Neither listing
-    -- is a superset of the other: kelp and irid were held in September and
-    -- not in October, which is why the union is what is counted.
+    -- The per-heading counts of the captures together. No listing is a
+    -- superset of another: kelp and irid were held in September and not in
+    -- October, health not on the 19th, which is why the union is counted.
     local want = {
         Herbs = 21, Minerals = 10, Elixirs = 7, Salves = 5, Inks = 6,
-        Reagent = 3, Ingredients = 6, Commodities = 16, Shipcomm = 1,
+        Reagent = 3, Ingredients = 6, Commodities = 17, Shipcomm = 1,
         Misc = 1,
     }
     local got = {}
