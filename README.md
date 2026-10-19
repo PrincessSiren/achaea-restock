@@ -49,8 +49,8 @@ older install.
 
 | Command | What it does |
 | --- | --- |
-| `restock` | What is below target, worst shortfall first |
-| `restock all` | Everything in the rift, grouped the way `RIFT` groups it |
+| `restock` | What is below target, worst shortfall first, and how far each is from its `HELP 7.14` cap |
+| `restock all` | Everything in the rift, grouped the way `RIFT` groups it, and how far each is from its cap |
 | `restock <heading>` | One heading: what you hold, and what is short |
 | `restock target` | Every target you have set |
 | `restock target <heading\|item> <n>` | Hold n of it — this is what opts it in |

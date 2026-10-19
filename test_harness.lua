@@ -839,6 +839,41 @@ do
 
     ok(M.listing(), "the full listing prints")
 
+    -- The buy figure only reaches the target; every row also says how much
+    -- more the rift would take, from HELP 7.14's caps.
+    local saved = M.rift
+    local savedTargets = M.targets
+    M.rift = { health = 1800, mana = 640, frost = 1000, venom = 1100,
+               epidermal = 300, gleam = 4 }
+    M.targets = { Elixirs = 500, Salves = 500, health = 1000, mana = 1000,
+                  frost = 1200 }
+    clearEcho()
+    ok(M.report(), "the report runs with fluid targets")
+    -- Colour tags would sit between the columns, so read what is printed.
+    local function shown() return (echoedText():gsub("<[%w_]+>", "")) end
+    local text = shown()
+    ok(text:find("mana%s+640 / 1000%s+buy 360%s+1360 to cap"),
+        "a short elixir says how far it is from its own 2000 cap")
+    ok(text:find("epidermal%s+300 / 500%s+buy 200%s+700 to cap"),
+        "a short salve says how far it is from the fluid cap")
+    ok(text:find("frost%s+1000 / 1200%s+buy 200%s+at cap"),
+        "a target above the cap reads as at cap, not a negative")
+    ok(not text:find("health"), "a stocked item stays out of the report")
+    clearEcho()
+    ok(M.listing(), "the listing runs")
+    text = shown()
+    ok(text:find("health%s+1800%s+200 to cap"), "every held row gets its cap")
+    ok(text:find("venom%s+1100%s+100 over cap 1000"),
+        "above the cap is said as such")
+    ok(text:find("gleam%s+4\n"), "Misc has no cap, so no cap column")
+    clearEcho()
+    ok(M.reportCategory("elixirs"), "one heading prints")
+    text = shown()
+    local shortAt = text:match("\n([^\n]*mana[^\n]*)\n"):find(" to cap", 1, true)
+    local heldAt = text:match("\n([^\n]*health[^\n]*)\n"):find(" to cap", 1, true)
+    eq(heldAt, shortAt, "a stocked row's cap lines up under a short one's")
+    M.rift, M.targets = saved, savedTargets
+
     -- An empty rift is a state the package is in at every login until the
     -- first frame lands, so every report has to survive it.
     M.rift = {}
