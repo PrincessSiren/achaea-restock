@@ -7,8 +7,7 @@
 # And the GMCP fixtures the harness drives are modelled on Orion's own
 # IRE.Rift handlers rather than on a capture of Achaea sending them. The shape
 # { name, amount } held in a live profile on 15th October 2026; whether
-# `amount` is a number or a string is the part nobody here knows, so both are
-# tested. See docs/the-rift-over-gmcp.md.
+# `amount` is a number or a string is still unknown, so both are tested. See docs/the-rift-over-gmcp.md.
 name: CI
 
 # Read-only: this workflow builds and checks, and never needs to write back.
