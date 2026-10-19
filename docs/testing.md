@@ -14,8 +14,8 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
 
 ## What it covers
 
-- **The transcription.** 75 names, ten headings, the per-heading counts the
-  two captures printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
+- **The transcription.** 77 names, ten headings, the per-heading counts the
+  captures printed, and every heading in `CATEGORY_ORDER` actually used. Two-word
   names (`myrrh gum`, `wyrm tongue`, `blue ink`) are checked by name, being the
   easy thing to lose.
 - **`HELP 7.14`'s caps**, including minerals at the "crystal" 2500. That row
@@ -45,6 +45,11 @@ things Mudlet rejects, so check with `luajit` rather than `lua`.
   listed is gone rather than remembered at its last value.
 - **The arithmetic** — shortfall ordering, `buy = target - have`, slack, item
   targets beating heading targets.
+- **The distance to the cap**, on short rows and on every `restock all` row:
+  health and mana against their own 2000, another fluid against 1000, a row
+  at the cap reading `at cap`, one above it said as such rather than as a
+  negative, Misc printing no cap column, and a stocked row in `restock
+  <heading>` lining its cap up under a short one's.
 - **The cure pairs, against the shape of `HELP 13.7.1`.** 21 rows, every
   mineral once, every herb once except skullcap, every herb one a listing has
   shown under Herbs, and no mineral filed under some other heading. The

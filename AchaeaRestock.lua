@@ -66,7 +66,7 @@
 restock = restock or {}
 local M = restock
 
-M.VERSION = "0.2.1"
+M.VERSION = "0.3.0"
 
 -- Both filled in by build.py, which appends them to the shipped copy of
 -- this file. Loaded from source they stay empty and "source", which is
@@ -107,9 +107,9 @@ M.CATEGORY_ORDER = {
     "Reagent", "Ingredients", "Commodities", "Shipcomm", "Misc",
 }
 
--- name -> heading, transcribed from two RIFT listings (18th September and 15th
--- October 2026). A lower bound: it holds what that character was carrying and
--- nothing else.
+-- name -> heading, transcribed from RIFT listings of 18th September, 15th
+-- October and 19th October 2026. A lower bound: it holds what that character
+-- was carrying and nothing else.
 M.CATEGORY = {
     -- Herbs
     ["ash"] = "Herbs", ["bayberry"] = "Herbs", ["bellwort"] = "Herbs",
@@ -154,6 +154,9 @@ M.CATEGORY = {
     ["rope"] = "Commodities", ["silver bar"] = "Commodities",
     ["silverore"] = "Commodities", ["steel"] = "Commodities",
     ["stone"] = "Commodities", ["wood"] = "Commodities",
+    -- First listed 19th October 2026, at 1378; `restock diag` that day showed
+    -- GMCP sending it under the same name at the same amount.
+    ["rawstone"] = "Commodities",
     -- Shipcomm
     ["shipwood"] = "Shipcomm",
     -- Misc (first seen 15th October 2026; HELP 7.14 states no cap for it)
@@ -826,13 +829,45 @@ local function haveStock()
     return false
 end
 
+--- How far one item is from its HELP 7.14 cap, as the words a row ends with,
+--- or "" where the scroll states no cap for it (Misc, and anything Unsorted).
+--- The buy figure only reaches the target; this is how much more the rift
+--- would still take. Above the cap is printed as such rather than as a
+--- negative, since it means M.CAP is wrong for that item -- 7.14 says "most"
+--- fluids, not all of them.
+local function capRoom(name, amount)
+    local cap = M.capOf(name)
+    if not cap then
+        return ""
+    end
+    if amount > cap then
+        return string.format("  <ansi_light_magenta>%d over 7.14's %d<reset>",
+            amount - cap, cap)
+    end
+    if amount == cap then
+        return "  at cap"
+    end
+    return string.format("  %4d to cap", cap - amount)
+end
+
+-- What shortRow puts between the amount and the cap column, as blanks, so a
+-- stocked row in the same heading lines its cap up under a short one's.
+local SHORT_GAP = #string.format(" / %-5d  buy %-5d", 0, 0)
+
 --- One shortfall row, padded into columns. Deliberately atomic: the columns
 --- are runs of spaces and anything that re-joined words on single spaces
 --- would eat them.
 local function shortRow(row)
     return string.format("  <ansi_light_yellow>%-16s<reset> %5d / %-5d  "
-        .. "<ansi_light_green>buy %d<reset>",
-        row.name, row.have, row.target, row.buy)
+        .. "<ansi_light_green>buy %-5d<reset>",
+        row.name, row.have, row.target, row.buy) .. capRoom(row.name, row.have)
+end
+
+--- One row of what is held, with how far it is from its cap. `gap` pads it to
+--- line up with shortRow where the two share a heading.
+local function heldRow(name, amount, gap)
+    return string.format("  %-16s %5d", name, amount)
+        .. string.rep(" ", gap or 0) .. capRoom(name, amount)
 end
 
 --- `restock cures [n|all|herbs|minerals|either]`. One alias and one function,
@@ -978,7 +1013,7 @@ function M.reportCategory(argument)
                 buy    = want - row.amount,
             }))
         else
-            plain(string.format("  %-16s %5d", row.name, row.amount))
+            plain(heldRow(row.name, row.amount, SHORT_GAP))
         end
     end
     return true
@@ -995,7 +1030,7 @@ function M.listing()
         if rows and #rows > 0 then
             plain("<ansi_white>" .. head .. "<reset>")
             for _, row in ipairs(rows) do
-                plain(string.format("  %-16s %5d", row.name, row.amount))
+                plain(heldRow(row.name, row.amount))
             end
         end
     end

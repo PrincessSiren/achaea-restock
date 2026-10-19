@@ -107,21 +107,21 @@ do
         used[category] = (used[category] or 0) + 1
         total = total + 1
     end
-    -- 56 from the September listing, 19 more from October's first, and
-    -- stannum from October's last.
-    eq(total, 76, "76 names transcribed from RIFT listings")
+    -- 56 from the September listing, 19 more from October's first,
+    -- stannum from October's last, and rawstone from the 19th's.
+    eq(total, 77, "77 names transcribed from RIFT listings")
     for _, head in ipairs(M.CATEGORY_ORDER) do
         ok(used[head], "heading has at least one name: " .. head)
         used[head] = nil
     end
     eq(next(used), nil, "no name filed under a heading not in the order list")
 
-    -- The per-heading counts of the two captures together. Neither listing
-    -- is a superset of the other: kelp and irid were held in September and
-    -- not in October, which is why the union is what is counted.
+    -- The per-heading counts of the captures together. No listing is a
+    -- superset of another: kelp and irid were held in September and not in
+    -- October, health not on the 19th, which is why the union is counted.
     local want = {
         Herbs = 21, Minerals = 10, Elixirs = 7, Salves = 5, Inks = 6,
-        Reagent = 3, Ingredients = 6, Commodities = 16, Shipcomm = 1,
+        Reagent = 3, Ingredients = 6, Commodities = 17, Shipcomm = 1,
         Misc = 1,
     }
     local got = {}
@@ -838,6 +838,41 @@ do
     ok(echoedText():find("nothing in the rift"), "...and says it is empty")
 
     ok(M.listing(), "the full listing prints")
+
+    -- The buy figure only reaches the target; every row also says how much
+    -- more the rift would take, from HELP 7.14's caps.
+    local saved = M.rift
+    local savedTargets = M.targets
+    M.rift = { health = 1800, mana = 640, frost = 1000, venom = 1100,
+               epidermal = 300, gleam = 4 }
+    M.targets = { Elixirs = 500, Salves = 500, health = 1000, mana = 1000,
+                  frost = 1200 }
+    clearEcho()
+    ok(M.report(), "the report runs with fluid targets")
+    -- Colour tags would sit between the columns, so read what is printed.
+    local function shown() return (echoedText():gsub("<[%w_]+>", "")) end
+    local text = shown()
+    ok(text:find("mana%s+640 / 1000%s+buy 360%s+1360 to cap"),
+        "a short elixir says how far it is from its own 2000 cap")
+    ok(text:find("epidermal%s+300 / 500%s+buy 200%s+700 to cap"),
+        "a short salve says how far it is from the fluid cap")
+    ok(text:find("frost%s+1000 / 1200%s+buy 200%s+at cap"),
+        "a target above the cap reads as at cap, not a negative")
+    ok(not text:find("health"), "a stocked item stays out of the report")
+    clearEcho()
+    ok(M.listing(), "the listing runs")
+    text = shown()
+    ok(text:find("health%s+1800%s+200 to cap"), "every held row gets its cap")
+    ok(text:find("venom%s+1100%s+100 over 7%.14's 1000"),
+        "above the cap is said as such")
+    ok(text:find("gleam%s+4\n"), "Misc has no cap, so no cap column")
+    clearEcho()
+    ok(M.reportCategory("elixirs"), "one heading prints")
+    text = shown()
+    local shortAt = text:match("\n([^\n]*mana[^\n]*)\n"):find(" to cap", 1, true)
+    local heldAt = text:match("\n([^\n]*health[^\n]*)\n"):find(" to cap", 1, true)
+    eq(heldAt, shortAt, "a stocked row's cap lines up under a short one's")
+    M.rift, M.targets = saved, savedTargets
 
     -- An empty rift is a state the package is in at every login until the
     -- first frame lands, so every report has to survive it.

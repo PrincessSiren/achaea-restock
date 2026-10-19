@@ -75,7 +75,7 @@ ALIASES: list[tuple[str, str, str, str, str]] = [
         r"^restock$",
         "restock.fresh(restock.report)",
         "restock",
-        "what is below target, worst shortfall first",
+        "what is below target, worst first, and how far from its cap",
     ),
     (
         "help",
@@ -89,7 +89,7 @@ ALIASES: list[tuple[str, str, str, str, str]] = [
         r"^restock\s+all$",
         "restock.fresh(restock.listing)",
         "restock all",
-        "everything in the rift, grouped the way RIFT groups it",
+        "everything in the rift, as RIFT groups it, and how far from cap",
     ),
     (
         "heading",
