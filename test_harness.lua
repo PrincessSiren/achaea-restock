@@ -874,14 +874,39 @@ do
     eq(heldAt, shortAt, "a stocked row's cap lines up under a short one's")
     M.rift, M.targets = saved, savedTargets
 
-    -- An empty rift is a state the package is in at every login until the
+    -- No rift at all is a state the package is in at every login until the
     -- first frame lands, so every report has to survive it.
+    local savedLists = M.state.lists
+    M.state.lists = 0
     M.rift = {}
     clearEcho()
-    ok(not M.report(), "the report declines on an empty rift")
+    ok(not M.report(), "the report declines before any frame")
     ok(echoedText():find("refresh"), "...pointing at the command that fills it")
-    ok(not M.listing(), "the listing declines on an empty rift")
-    ok(not M.reportCategory("herbs"), "a heading declines on an empty rift")
+    ok(not M.listing(), "the listing declines before any frame")
+    ok(not M.reportCategory("herbs"), "a heading declines before any frame")
+
+    -- An empty List is a different thing: a rift holding nothing. Through
+    -- 0.3.0 it was read as no rift, so an item target or a cure threshold
+    -- never produced a shopping list however often the rift was refreshed.
+    gmcp.IRE.Rift.List = {}
+    raise("gmcp.IRE.Rift.List")
+    eq(next(M.rift), nil, "an empty List leaves an empty rift")
+    M.targets = { bloodroot = 500 }
+    clearEcho()
+    ok(M.report(), "the report runs on an empty List")
+    ok(shown():find("bloodroot%s+0 / 500%s+buy 500"),
+        "...and an item target is bought from nothing")
+    local savedLow = M.config.cureLow
+    M.config.cureLow = 500
+    clearEcho()
+    ok(M.cures(), "the cure report runs on an empty List")
+    ok(echoedText():find("bloodroot"), "...naming a pair held at none")
+    clearEcho()
+    ok(M.cures("all"), "every cure pair prints on an empty List")
+    M.config.cureLow = savedLow
+    clearEcho()
+    ok(M.listing(), "the listing runs on an empty List")
+    M.state.lists = savedLists
     M.targets = {}
 end
 
