@@ -88,9 +88,9 @@ jobs:
       # Gated on a repository variable rather than simply present, because
       # publishing needs the Mudlet package repository to know this repo
       # first: trusted-publishers.json there pins the owner, the repo *and*
-      # job_workflow_ref, so until that entry is merged this step can only
-      # fail, and it would fail on the one run where the release itself went
-      # fine. Set PUBLISH_TO_MUDLET to `true` once the registry PR lands.
+      # job_workflow_ref, so without that entry this step can only fail. The
+      # entry is in and PUBLISH_TO_MUDLET is `true` here; a fork has no such
+      # variable, so the step skips there rather than failing.
       #
       # Renaming this file revokes publishing, since the registry names it by
       # path.

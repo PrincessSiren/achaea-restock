@@ -1,5 +1,6 @@
 # AchaeaRestock
 
+[![mpkg](https://img.shields.io/badge/mpkg-AchaeaRestock-blue)](https://packages.mudlet.org/packages/achaearestock)
 [![release](https://img.shields.io/github/v/release/PrincessSiren/achaea-restock)](../../releases/latest)
 
 What to buy before you go out.
@@ -17,9 +18,9 @@ target is what opts a heading or an item into the report.
 
 ## Install
 
-In Mudlet, install `AchaeaRestock.mpackage` from the
-[latest release](../../releases/latest), or build it yourself with
-`python3 build.py`. Then say what you want to be holding:
+In Mudlet, type `mpkg install AchaeaRestock`. Or install
+`AchaeaRestock.mpackage` from the [latest release](../../releases/latest), or
+build it yourself with `python3 build.py`. Then say what you want to be holding:
 
 ```
 restock target herbs 500

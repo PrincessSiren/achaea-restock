@@ -84,13 +84,13 @@ bumping mid-review mints numbers for states nobody installed.
 
 Pushing a tag `v<version>` is what ships. `release.yml` runs the harness, refuses
 a tag whose number `M.VERSION` does not claim, builds the `.mpackage` from that
-tag, and attaches it to the release.
+tag, attaches it to the release, and publishes it to the Mudlet package
+repository, which lands as a pull request there.
 
-Publishing to the Mudlet package repository is a further step, and it is **off
-until the registry knows this repo**: `trusted-publishers.json` there pins the
-owner, the repo and the workflow file by path, so the step can only fail until
-that entry is merged. Set a repository variable `PUBLISH_TO_MUDLET` to `true`
-once it is, and note that renaming `release.yml` afterwards revokes publishing.
+The publish step runs only while the repository variable `PUBLISH_TO_MUDLET` is
+`true`, which it is; a fork has no such variable, so it skips there. The
+registry's `trusted-publishers.json` names this repository and `release.yml` by
+path, so renaming that file revokes publishing until the entry is amended.
 
 Then it announces the release in Discord, if — and only if — a `DISCORD_WEBHOOK`
 secret is set on the repository. The message carries the two things a player can
