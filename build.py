@@ -53,7 +53,7 @@ HELP_URL = SOURCE_URL
 # the digest against the one the release published. A wall clock in the
 # archive would throw that away for a field nothing reads back. Move it when
 # the version moves.
-CREATED = "2026-10-15"
+CREATED = "2026-10-20"
 LUA = HERE / "AchaeaRestock.lua"
 XML = HERE / "AchaeaRestock.xml"
 MPACKAGE = HERE / "AchaeaRestock.mpackage"

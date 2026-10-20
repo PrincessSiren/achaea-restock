@@ -66,7 +66,7 @@
 restock = restock or {}
 local M = restock
 
-M.VERSION = "0.3.0"
+M.VERSION = "0.3.1"
 
 -- Both filled in by build.py, which appends them to the shipped copy of
 -- this file. Loaded from source they stay empty and "source", which is
@@ -821,11 +821,16 @@ local function watched()
     return list
 end
 
+--- Whether there is a rift to report on: a List has arrived, or a Change has.
+--- An empty List counts. It is the rift of a character holding nothing, and
+--- through 0.3.0 this asked for items rather than a List, so that character
+--- got a refresh warning however many times they refreshed, and never the
+--- shopping list an item target or `restock cures` would have given them.
 local function haveStock()
-    if count(M.rift) > 0 then
+    if count(M.rift) > 0 or (S.lists or 0) > 0 then
         return true
     end
-    warn("nothing in the rift yet -- `restock refresh` asks the game for it.")
+    warn("the game has not sent your rift yet -- `restock refresh` asks for it.")
     return false
 end
 
